@@ -1,0 +1,64 @@
+:root{
+  --movalya-blue:#1E88E5;
+  --movalya-green:#43A047;
+  --movalya-dark:#0f172a;
+}
+
+/* ===== Layout global ===== */
+html { scroll-behavior: smooth; }
+body { padding-top:72px; }          /* compense la navbar fixed-top */
+section[id] { scroll-margin-top: 84px; }  /* offset propre pour les ancres (#produits, etc.) */
+
+/* Réinitialisations douces */
+img{max-width:100%;height:auto;display:block}
+
+/* ===== HERO ===== */
+.hero{
+  position:relative;                /* au cas où la classe bootstrap est manquante */
+  min-height:80vh;
+  overflow:hidden;                  /* évite tout débordement visuel */
+  color:#fff;
+}
+.hero .hero-bg{
+  position:absolute; inset:0; width:100%; height:100%;
+  object-fit:cover;
+  filter:brightness(0.85) saturate(1.1);
+  z-index:0;
+}
+.hero .hero-overlay{
+  position:absolute; inset:0;
+  background:linear-gradient(180deg, rgba(0,0,0,.35) 0%, rgba(0,0,0,.55) 70%, rgba(0,0,0,.6) 100%);
+  z-index:1;
+}
+/* assure que le contenu passe au-dessus du fond/overlay */
+.hero .container{ position:relative; z-index:2; }
+
+/* ===== Badges d'icônes ===== */
+.icon-badge{
+  width:48px;height:48px;border-radius:12px;
+  display:grid;place-items:center;
+  background:linear-gradient(135deg,var(--movalya-blue),var(--movalya-green));
+  color:#fff;font-weight:700;font-size:20px;
+}
+
+/* ===== Cartes produit ===== */
+.product-card{
+  border:1px solid rgba(0,0,0,.06);
+  transition:transform .2s ease, box-shadow .2s ease;
+}
+.product-card:hover{
+  transform:translateY(-4px);
+  box-shadow:0 10px 30px rgba(0,0,0,.08);
+}
+.product-card .card-img-top{
+  aspect-ratio: 16/9;               /* ratio homogène */
+  object-fit:cover;                 /* recadrage propre */
+}
+.price{font-size:1.1rem}
+
+/* ===== Footer ===== */
+footer .footer-link{
+  color:rgba(255,255,255,.8); text-decoration:none;
+}
+footer .footer-link:hover{ color:#fff; text-decoration:underline; }
+footer{ background:linear-gradient(180deg,#0b1320,#0a0f19 60%); }
