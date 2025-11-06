@@ -301,6 +301,11 @@
             <li><a class="footer-link" href="#">Support</a></li>
             <li><a class="footer-link" href="#">Mentions légales</a></li>
             <li><a class="footer-link" href="#">Politique de confidentialité</a></li>
+            <li>
+              <button type="button" class="footer-link btn btn-link p-0 text-start" data-bs-toggle="modal" data-bs-target="#cookieSettingsModal">
+                Gérer les cookies
+              </button>
+            </li>
           </ul>
         </div>
         <div class="col-md-3">
@@ -323,8 +328,64 @@
     </div>
   </footer>
 
+  <!-- COOKIE CONSENT -->
+  <div id="cookieBanner" class="cookie-banner shadow-lg" role="dialog" aria-live="polite" aria-label="Bannière de consentement aux cookies" hidden>
+    <div class="cookie-banner__content">
+      <h2 class="h5 mb-2">Nous utilisons des cookies</h2>
+      <p class="mb-0 small text-muted">
+        Certains cookies sont essentiels au bon fonctionnement du site. Nous utilisons également des cookies optionnels pour mesurer l’audience et améliorer votre expérience.
+      </p>
+    </div>
+    <div class="cookie-banner__actions">
+      <button type="button" class="btn btn-primary" id="cookieAcceptAll">Tout accepter</button>
+      <button type="button" class="btn btn-outline-secondary" id="cookieRejectAll">Tout refuser</button>
+      <button type="button" class="btn btn-link text-decoration-none" id="cookieCustomize" data-bs-toggle="modal" data-bs-target="#cookieSettingsModal">
+        Personnaliser
+      </button>
+    </div>
+  </div>
+
+  <div class="modal fade" id="cookieSettingsModal" tabindex="-1" aria-labelledby="cookieSettingsTitle" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h2 class="modal-title h5 mb-0" id="cookieSettingsTitle">Préférences de cookies</h2>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fermer"></button>
+        </div>
+        <div class="modal-body">
+          <p class="small text-muted">Modifiez ci-dessous vos préférences. Les cookies nécessaires sont toujours actifs afin de garantir la sécurité et le fonctionnement du site.</p>
+          <div class="form-check form-switch mb-3">
+            <input class="form-check-input" type="checkbox" id="cookieNecessary" checked disabled>
+            <label class="form-check-label" for="cookieNecessary">
+              Cookies nécessaires
+              <span class="d-block text-muted small">Indispensables pour la sécurité, l’accessibilité et la mémorisation de vos choix.</span>
+            </label>
+          </div>
+          <div class="form-check form-switch mb-3">
+            <input class="form-check-input" type="checkbox" id="cookieAnalytics">
+            <label class="form-check-label" for="cookieAnalytics">
+              Cookies de mesure d’audience
+              <span class="d-block text-muted small">Nous aident à comprendre comment le site est utilisé pour l’améliorer.</span>
+            </label>
+          </div>
+          <div class="form-check form-switch">
+            <input class="form-check-input" type="checkbox" id="cookieMarketing">
+            <label class="form-check-label" for="cookieMarketing">
+              Cookies marketing
+              <span class="d-block text-muted small">Permettent de personnaliser la communication et les offres.</span>
+            </label>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Annuler</button>
+          <button type="button" class="btn btn-primary" id="cookieSavePreferences">Enregistrer</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <!-- Scripts -->
-  <<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
   <script src="assets/js/main.js"></script>
 </body>
 </html>
