@@ -1,0 +1,9 @@
+vendor/
+node_modules/
+uploads/
+cache/
+logs/
+.env
+*.log
+.idea/
+*.sql
