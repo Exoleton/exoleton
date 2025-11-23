@@ -191,6 +191,30 @@
     "contact": "Poproś o kontakt"
   },
   "auth": {
-    "passwordHint": "Twoje hasła są przechowywane w bezpieczny i poufny sposób."
+    "metaTitle": "Logowanie / Rejestracja – Exoleton",
+    "metaDescription": "Zaloguj się, utwórz konto klienta lub poproś o reset hasła.",
+    "heading": "Uzyskaj dostęp do swojego konta",
+    "subtitle": "Logowanie, tworzenie konta klienta lub prośba o reset hasła.",
+    "tabLogin": "Zaloguj się",
+    "tabRegister": "Utwórz konto",
+    "tabForgot": "Zapomniałeś hasła",
+    "login": {
+      "emailLabel": "Email",
+      "passwordLabel": "Hasło",
+      "forgotLink": "Zapomniałeś hasła?",
+      "submit": "Zaloguj się"
+    },
+    "register": {
+      "nameLabel": "Pełne imię i nazwisko",
+      "emailLabel": "Email",
+      "passwordLabel": "Hasło",
+      "submit": "Utwórz konto"
+    },
+    "forgot": {
+      "emailLabel": "Email",
+      "hint": "Wygenerujemy link resetujący ważny 1 godzinę.",
+      "submit": "Wyślij link"
+    },
+    "passwordHint": "Twoje hasła są przechowywane bezpiecznie i pozostają poufne."
   }
 }

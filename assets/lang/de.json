@@ -191,6 +191,30 @@
     "contact": "Kontaktiert werden"
   },
   "auth": {
-    "passwordHint": "Ihre Passwörter werden sicher und vertraulich gespeichert."
+    "metaTitle": "Anmelden / Registrieren – Exoleton",
+    "metaDescription": "Melden Sie sich an, erstellen Sie Ihr Exoleton-Konto oder fordern Sie eine Passwortzurücksetzung an.",
+    "heading": "Zugriff auf Ihren Bereich",
+    "subtitle": "Anmeldung, Kontoerstellung oder Anforderung einer Passwortrücksetzung.",
+    "tabLogin": "Anmelden",
+    "tabRegister": "Konto erstellen",
+    "tabForgot": "Passwort vergessen",
+    "login": {
+      "emailLabel": "E-Mail",
+      "passwordLabel": "Passwort",
+      "forgotLink": "Passwort vergessen?",
+      "submit": "Anmelden"
+    },
+    "register": {
+      "nameLabel": "Vollständiger Name",
+      "emailLabel": "E-Mail",
+      "passwordLabel": "Passwort",
+      "submit": "Konto erstellen"
+    },
+    "forgot": {
+      "emailLabel": "E-Mail",
+      "hint": "Wir generieren einen Zurücksetzungslink, der 1 Stunde gültig ist.",
+      "submit": "Link senden"
+    },
+    "passwordHint": "Ihre Passwörter werden sicher gespeichert und bleiben vertraulich."
   }
 }

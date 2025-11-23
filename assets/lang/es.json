@@ -191,6 +191,30 @@
     "contact": "Ser contactado"
   },
   "auth": {
-    "passwordHint": "Tus contraseñas se guardan de forma segura y permanecen confidenciales."
+    "metaTitle": "Iniciar sesión / Registrarse – Exoleton",
+    "metaDescription": "Inicia sesión, crea tu cuenta de cliente o solicita un restablecimiento de contraseña.",
+    "heading": "Accede a tu espacio",
+    "subtitle": "Inicio de sesión, creación de cuenta de cliente o solicitud de restablecimiento de contraseña.",
+    "tabLogin": "Iniciar sesión",
+    "tabRegister": "Crear una cuenta",
+    "tabForgot": "Olvidé mi contraseña",
+    "login": {
+      "emailLabel": "Email",
+      "passwordLabel": "Contraseña",
+      "forgotLink": "¿Olvidaste tu contraseña?",
+      "submit": "Conectarse"
+    },
+    "register": {
+      "nameLabel": "Nombre completo",
+      "emailLabel": "Email",
+      "passwordLabel": "Contraseña",
+      "submit": "Crear cuenta"
+    },
+    "forgot": {
+      "emailLabel": "Email",
+      "hint": "Generaremos un enlace de restablecimiento válido por 1 hora.",
+      "submit": "Enviar enlace"
+    },
+    "passwordHint": "Tus contraseñas se almacenan de forma segura y se mantienen confidenciales."
   }
 }

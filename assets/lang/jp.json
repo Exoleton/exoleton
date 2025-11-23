@@ -191,6 +191,30 @@
     "contact": "連絡を受ける"
   },
   "auth": {
-    "passwordHint": "パスワードは安全に保管され、機密として扱われます。"
+    "metaTitle": "ログイン / 登録 – Exoleton",
+    "metaDescription": "ログイン、アカウント作成、またはパスワード再設定を行います。",
+    "heading": "マイスペースにアクセス",
+    "subtitle": "ログイン、顧客アカウントの作成、またはパスワード再設定のリクエスト。",
+    "tabLogin": "ログイン",
+    "tabRegister": "アカウント作成",
+    "tabForgot": "パスワードをお忘れですか",
+    "login": {
+      "emailLabel": "メールアドレス",
+      "passwordLabel": "パスワード",
+      "forgotLink": "パスワードをお忘れですか？",
+      "submit": "ログイン"
+    },
+    "register": {
+      "nameLabel": "氏名",
+      "emailLabel": "メールアドレス",
+      "passwordLabel": "パスワード",
+      "submit": "アカウントを作成"
+    },
+    "forgot": {
+      "emailLabel": "メールアドレス",
+      "hint": "1時間有効なリセットリンクを生成します。",
+      "submit": "リンクを送信"
+    },
+    "passwordHint": "パスワードは安全に保存され、機密が保持されます。"
   }
 }

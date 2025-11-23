@@ -191,6 +191,30 @@
     "contact": "Ser contactado"
   },
   "auth": {
-    "passwordHint": "As suas senhas são armazenadas de forma segura e permanecem confidenciais."
+    "metaTitle": "Entrar / Criar conta – Exoleton",
+    "metaDescription": "Inicie sessão, crie a sua conta de cliente ou peça a redefinição da palavra-passe.",
+    "heading": "Aceda ao seu espaço",
+    "subtitle": "Início de sessão, criação de conta de cliente ou pedido de redefinição de palavra-passe.",
+    "tabLogin": "Entrar",
+    "tabRegister": "Criar conta",
+    "tabForgot": "Esqueceu a palavra-passe",
+    "login": {
+      "emailLabel": "Email",
+      "passwordLabel": "Palavra-passe",
+      "forgotLink": "Esqueceu a palavra-passe?",
+      "submit": "Iniciar sessão"
+    },
+    "register": {
+      "nameLabel": "Nome completo",
+      "emailLabel": "Email",
+      "passwordLabel": "Palavra-passe",
+      "submit": "Criar conta"
+    },
+    "forgot": {
+      "emailLabel": "Email",
+      "hint": "Geraremos um link de redefinição válido por 1 hora.",
+      "submit": "Enviar link"
+    },
+    "passwordHint": "As suas palavras-passe são guardadas em segurança e mantêm-se confidenciais."
   }
 }
