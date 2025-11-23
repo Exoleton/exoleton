@@ -434,7 +434,7 @@ $announcements = $announcementsStmt->fetchAll();
                               <i class="fa-solid fa-user-plus"></i>
                             </button>
                           </div>
-                        </div>
+                        </button>
 
                         <div class="card shadow-sm border-0">
                           <div class="card-body d-flex align-items-center justify-content-between">
@@ -446,7 +446,7 @@ $announcements = $announcementsStmt->fetchAll();
                               <i class="fa-solid fa-link"></i>
                             </button>
                           </div>
-                        </div>
+                        </button>
                       </div>
                     </div>
                   </div>
