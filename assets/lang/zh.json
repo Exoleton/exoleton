@@ -191,6 +191,30 @@
     "contact": "获取联系"
   },
   "auth": {
-    "passwordHint": "您的密码会被安全地保存，并保持机密。"
+    "metaTitle": "登录 / 注册 – Exoleton",
+    "metaDescription": "登录、创建客户账户或申请重置密码。",
+    "heading": "访问您的空间",
+    "subtitle": "登录、创建客户账户或申请重置密码。",
+    "tabLogin": "登录",
+    "tabRegister": "创建账户",
+    "tabForgot": "忘记密码",
+    "login": {
+      "emailLabel": "邮箱",
+      "passwordLabel": "密码",
+      "forgotLink": "忘记密码？",
+      "submit": "登录"
+    },
+    "register": {
+      "nameLabel": "全名",
+      "emailLabel": "邮箱",
+      "passwordLabel": "密码",
+      "submit": "创建账户"
+    },
+    "forgot": {
+      "emailLabel": "邮箱",
+      "hint": "我们将生成一个有效期为1小时的重置链接。",
+      "submit": "发送链接"
+    },
+    "passwordHint": "您的密码会被安全存储并保持机密。"
   }
 }

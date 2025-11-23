@@ -191,6 +191,30 @@
     "contact": "Get contacted"
   },
   "auth": {
+    "metaTitle": "Login / Sign up – Exoleton",
+    "metaDescription": "Sign in, create your customer account or request a password reset.",
+    "heading": "Access your space",
+    "subtitle": "Sign in, create a customer account or request a password reset.",
+    "tabLogin": "Sign in",
+    "tabRegister": "Create an account",
+    "tabForgot": "Forgot password",
+    "login": {
+      "emailLabel": "Email",
+      "passwordLabel": "Password",
+      "forgotLink": "Forgot password?",
+      "submit": "Sign in"
+    },
+    "register": {
+      "nameLabel": "Full name",
+      "emailLabel": "Email",
+      "passwordLabel": "Password",
+      "submit": "Create account"
+    },
+    "forgot": {
+      "emailLabel": "Email",
+      "hint": "We will generate a reset link valid for 1 hour.",
+      "submit": "Send link"
+    },
     "passwordHint": "Your passwords are stored securely and remain confidential."
   }
 }

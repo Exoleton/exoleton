@@ -191,6 +191,30 @@
     "contact": "Être recontacté"
   },
   "auth": {
+    "metaTitle": "Connexion / Inscription – Exoleton",
+    "metaDescription": "Connexion, création de compte client ou demande de réinitialisation du mot de passe.",
+    "heading": "Accéder à votre espace",
+    "subtitle": "Connexion, création de compte client ou demande de réinitialisation du mot de passe.",
+    "tabLogin": "Connexion",
+    "tabRegister": "Créer un compte",
+    "tabForgot": "Mot de passe oublié",
+    "login": {
+      "emailLabel": "Email",
+      "passwordLabel": "Mot de passe",
+      "forgotLink": "Mot de passe oublié ?",
+      "submit": "Se connecter"
+    },
+    "register": {
+      "nameLabel": "Nom complet",
+      "emailLabel": "Email",
+      "passwordLabel": "Mot de passe",
+      "submit": "Créer le compte"
+    },
+    "forgot": {
+      "emailLabel": "Email",
+      "hint": "Nous générerons un lien de réinitialisation valable 1 heure.",
+      "submit": "Envoyer le lien"
+    },
     "passwordHint": "Vos mots de passe sont conservés de manière sécurisée et restent confidentiels."
   }
 }

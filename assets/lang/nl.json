@@ -191,6 +191,30 @@
     "contact": "Gecontacteerd worden"
   },
   "auth": {
-    "passwordHint": "Je wachtwoorden worden veilig opgeslagen en blijven vertrouwelijk."
+    "metaTitle": "Inloggen / Registreren – Exoleton",
+    "metaDescription": "Log in, maak uw klantaccount aan of vraag een wachtwoordreset aan.",
+    "heading": "Toegang tot uw ruimte",
+    "subtitle": "Inloggen, klantaccount aanmaken of wachtwoordreset aanvragen.",
+    "tabLogin": "Inloggen",
+    "tabRegister": "Account aanmaken",
+    "tabForgot": "Wachtwoord vergeten",
+    "login": {
+      "emailLabel": "E-mail",
+      "passwordLabel": "Wachtwoord",
+      "forgotLink": "Wachtwoord vergeten?",
+      "submit": "Inloggen"
+    },
+    "register": {
+      "nameLabel": "Volledige naam",
+      "emailLabel": "E-mail",
+      "passwordLabel": "Wachtwoord",
+      "submit": "Account aanmaken"
+    },
+    "forgot": {
+      "emailLabel": "E-mail",
+      "hint": "We genereren een resetlink die 1 uur geldig is.",
+      "submit": "Link verzenden"
+    },
+    "passwordHint": "Uw wachtwoorden worden veilig opgeslagen en blijven vertrouwelijk."
   }
 }

@@ -191,6 +191,30 @@
     "contact": "연락받기"
   },
   "auth": {
-    "passwordHint": "비밀번호는 안전하게 보관되며 기밀로 유지됩니다."
+    "metaTitle": "로그인 / 가입 – Exoleton",
+    "metaDescription": "로그인하고 고객 계정을 만들거나 비밀번호 재설정을 요청하세요.",
+    "heading": "내 공간에 접속하기",
+    "subtitle": "로그인, 고객 계정 생성 또는 비밀번호 재설정 요청.",
+    "tabLogin": "로그인",
+    "tabRegister": "계정 만들기",
+    "tabForgot": "비밀번호 찾기",
+    "login": {
+      "emailLabel": "이메일",
+      "passwordLabel": "비밀번호",
+      "forgotLink": "비밀번호를 잊으셨나요?",
+      "submit": "로그인"
+    },
+    "register": {
+      "nameLabel": "전체 이름",
+      "emailLabel": "이메일",
+      "passwordLabel": "비밀번호",
+      "submit": "계정 생성"
+    },
+    "forgot": {
+      "emailLabel": "이메일",
+      "hint": "1시간 동안 유효한 재설정 링크를 생성합니다.",
+      "submit": "링크 보내기"
+    },
+    "passwordHint": "비밀번호는 안전하게 보관되며 기밀이 유지됩니다."
   }
 }

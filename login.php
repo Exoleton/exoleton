@@ -114,17 +114,23 @@ $algoInfo = preferred_password_algorithm();
 <html lang="fr">
 <head>
   <meta charset="utf-8">
-  <title>Connexion / Inscription – Exoleton</title>
+  <title data-i18n="auth.metaTitle">Connexion / Inscription – Exoleton</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Connexion, création de compte client ou demande de réinitialisation du mot de passe." data-i18n-description="auth.metaDescription">
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
   <link rel="stylesheet" href="assets/css/main.css">
 </head>
 <body class="bg-light">
   <header class="navbar navbar-expand-lg navbar-light bg-white fixed-top shadow-sm">
-    <div class="container">
+    <div class="container d-flex align-items-center justify-content-between">
       <a class="navbar-brand d-flex align-items-center" href="index.php">
         <img src="assets/img/logo.png" alt="Exoleton" width="272" height="1000" class="me-2">
       </a>
+      <div class="d-flex align-items-center gap-3">
+        <a class="btn btn-outline-primary d-none d-md-inline-flex" href="index.php" data-i18n="nav.home">Accueil</a>
+        <label class="visually-hidden" for="languageSwitcherLogin" data-i18n="lang.label">Langue</label>
+        <select id="languageSwitcherLogin" class="form-select form-select-sm" data-language-switcher></select>
+      </div>
     </div>
   </header>
 
@@ -133,8 +139,8 @@ $algoInfo = preferred_password_algorithm();
       <div class="col-lg-8 col-xl-7">
         <div class="card shadow-sm border-0">
           <div class="card-body p-4 p-lg-5">
-            <h1 class="h3 mb-4">Accéder à votre espace</h1>
-            <p class="text-muted">Connexion, création de compte client ou demande de réinitialisation du mot de passe.</p>
+            <h1 class="h3 mb-4" data-i18n="auth.heading">Accéder à votre espace</h1>
+            <p class="text-muted" data-i18n="auth.subtitle">Connexion, création de compte client ou demande de réinitialisation du mot de passe.</p>
 
             <?php if ($errors): ?>
               <div class="alert alert-danger" role="alert">
@@ -158,13 +164,13 @@ $algoInfo = preferred_password_algorithm();
 
             <ul class="nav nav-pills mb-4" role="tablist">
               <li class="nav-item" role="presentation">
-                <button class="nav-link<?= $activeView === 'login' ? ' active' : ''; ?>" data-bs-toggle="pill" data-bs-target="#pane-login" type="button" role="tab">Connexion</button>
+                <button class="nav-link<?= $activeView === 'login' ? ' active' : ''; ?>" data-bs-toggle="pill" data-bs-target="#pane-login" type="button" role="tab" data-i18n="auth.tabLogin">Connexion</button>
               </li>
               <li class="nav-item" role="presentation">
-                <button class="nav-link<?= $activeView === 'register' ? ' active' : ''; ?>" data-bs-toggle="pill" data-bs-target="#pane-register" type="button" role="tab">Créer un compte</button>
+                <button class="nav-link<?= $activeView === 'register' ? ' active' : ''; ?>" data-bs-toggle="pill" data-bs-target="#pane-register" type="button" role="tab" data-i18n="auth.tabRegister">Créer un compte</button>
               </li>
               <li class="nav-item" role="presentation">
-                <button class="nav-link<?= $activeView === 'forgot' ? ' active' : ''; ?>" data-bs-toggle="pill" data-bs-target="#pane-forgot" type="button" role="tab">Mot de passe oublié</button>
+                <button class="nav-link<?= $activeView === 'forgot' ? ' active' : ''; ?>" data-bs-toggle="pill" data-bs-target="#pane-forgot" type="button" role="tab" data-i18n="auth.tabForgot">Mot de passe oublié</button>
               </li>
             </ul>
 
@@ -174,16 +180,16 @@ $algoInfo = preferred_password_algorithm();
                   <input type="hidden" name="action" value="login">
                   <input type="hidden" name="view" value="login">
                   <div>
-                    <label for="loginEmail" class="form-label">Email</label>
+                    <label for="loginEmail" class="form-label" data-i18n="auth.login.emailLabel">Email</label>
                     <input type="email" class="form-control" id="loginEmail" name="email" required autocomplete="email">
                   </div>
                   <div>
-                    <label for="loginPassword" class="form-label">Mot de passe</label>
+                    <label for="loginPassword" class="form-label" data-i18n="auth.login.passwordLabel">Mot de passe</label>
                     <input type="password" class="form-control" id="loginPassword" name="password" required autocomplete="current-password">
                   </div>
                   <div class="d-flex justify-content-between align-items-center">
-                    <a href="#" onclick="document.querySelector('[data-bs-target=\\'#pane-forgot\\']').click(); return false;">Mot de passe oublié ?</a>
-                    <button type="submit" class="btn btn-primary">Se connecter</button>
+                    <a href="#" onclick="document.querySelector('[data-bs-target=\\'#pane-forgot\\']').click(); return false;" data-i18n="auth.login.forgotLink">Mot de passe oublié ?</a>
+                    <button type="submit" class="btn btn-primary" data-i18n="auth.login.submit">Se connecter</button>
                   </div>
                 </form>
               </div>
@@ -193,20 +199,20 @@ $algoInfo = preferred_password_algorithm();
                   <input type="hidden" name="action" value="register">
                   <input type="hidden" name="view" value="register">
                   <div>
-                    <label for="registerName" class="form-label">Nom complet</label>
+                    <label for="registerName" class="form-label" data-i18n="auth.register.nameLabel">Nom complet</label>
                     <input type="text" class="form-control" id="registerName" name="name" required>
                   </div>
                   <div>
-                    <label for="registerEmail" class="form-label">Email</label>
+                    <label for="registerEmail" class="form-label" data-i18n="auth.register.emailLabel">Email</label>
                     <input type="email" class="form-control" id="registerEmail" name="email" required autocomplete="email">
                   </div>
                   <div>
-                    <label for="registerPassword" class="form-label">Mot de passe</label>
+                    <label for="registerPassword" class="form-label" data-i18n="auth.register.passwordLabel">Mot de passe</label>
                     <input type="password" class="form-control" id="registerPassword" name="password" required autocomplete="new-password" minlength="8">
-                    <div class="form-text">Vos mots de passe sont conservés de manière sécurisée.</div>
+                    <div class="form-text" data-i18n="auth.passwordHint">Vos mots de passe sont conservés de manière sécurisée.</div>
                   </div>
                   <div class="text-end">
-                    <button type="submit" class="btn btn-primary">Créer le compte</button>
+                    <button type="submit" class="btn btn-primary" data-i18n="auth.register.submit">Créer le compte</button>
                   </div>
                 </form>
               </div>
@@ -216,12 +222,12 @@ $algoInfo = preferred_password_algorithm();
                   <input type="hidden" name="action" value="forgot">
                   <input type="hidden" name="view" value="forgot">
                   <div>
-                    <label for="forgotEmail" class="form-label">Email</label>
+                    <label for="forgotEmail" class="form-label" data-i18n="auth.forgot.emailLabel">Email</label>
                     <input type="email" class="form-control" id="forgotEmail" name="email" required autocomplete="email">
-                    <div class="form-text">Nous générerons un lien de réinitialisation valable 1 heure.</div>
+                    <div class="form-text" data-i18n="auth.forgot.hint">Nous générerons un lien de réinitialisation valable 1 heure.</div>
                   </div>
                   <div class="text-end">
-                    <button type="submit" class="btn btn-primary">Envoyer le lien</button>
+                    <button type="submit" class="btn btn-primary" data-i18n="auth.forgot.submit">Envoyer le lien</button>
                   </div>
                 </form>
               </div>
@@ -233,6 +239,7 @@ $algoInfo = preferred_password_algorithm();
   </main>
 
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="assets/js/i18n.js"></script>
   <script>
     // maintenir l'onglet actif après soumission
     const activeTab = document.querySelector('.nav-link.active');
