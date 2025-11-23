@@ -93,9 +93,28 @@ CREATE TABLE IF NOT EXISTS suppliers (
   email VARCHAR(190) DEFAULT NULL,
   phone VARCHAR(50) DEFAULT NULL,
   dropshipping_enabled TINYINT(1) DEFAULT 1,
+  is_featured TINYINT(1) DEFAULT 0,
   notes TEXT,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- Sécurise la compatibilité avec les bases déjà existantes
+ALTER TABLE suppliers ADD COLUMN IF NOT EXISTS is_featured TINYINT(1) DEFAULT 0;
+
+INSERT INTO suppliers (name, contact_name, email, phone, dropshipping_enabled, is_featured, notes) VALUES
+  ('HMT France (Human Mechanical Technologies)', NULL, 'contact@hmt-france.com', '+33 (0)5 62 37 74 75', 1, 1, 'Segment : Exos pro/TMS, industrie, logistique, BTP. Adresse : 9 rue de la Garounère, 65000 Tarbes. Site : https://hmt-france.com'),
+  ('ErgoSanté / ShivaExo', NULL, 'contact@ergosante.fr', '+33 (0)4 66 24 54 56', 1, 1, 'Segment : Exos industriels (ShivaExo), ergonomie, TMS. Adresse : 28 ZA de Labahou, 30140 Anduze. Site : https://ergosante.fr'),
+  ('RB3D', NULL, NULL, '+33 (0)3 86 46 92 58', 1, 0, 'Segment : Exos actifs et passifs (Exoback, Exoviti…), cobotique. Adresse : 41 avenue de Paris, 89470 Monéteau. Contact via https://www.rb3d.com/fr/contact/'),
+  ('Exhauss', NULL, 'contact@exhauss.com', NULL, 1, 0, 'Segment : Exos passifs haute assistance (forestier, paysager, manutention). Adresse : 13 rue Daniel Fargeot, 69550 Amplepuis. Site : https://www.exhauss.com'),
+  ('Japet Medical (Japet.W+)', NULL, 'contact@japet.eu', '+33 (0)3 74 09 57 52', 1, 0, 'Segment : Exo lombaire médical/tertiaire, prévention mal de dos. Adresse : 147 av Pierre Mauroy, 59120 Loos. Site : https://www.japet.eu'),
+  ('Exoskelette.com (AWB GmbH)', NULL, 'office@awb.at', '+43 7245 20513-0', 1, 0, 'Segment : Distributeur multi-marques (Ottobock/Paexo, Auxivo, Noonee, Armon, Bioservo…). Adresse : Moritz-von-Schwind-Straße 10a, 4651 Stadl-Paura. Site : https://www.exoskelette.com'),
+  ('German Bionic', NULL, 'sales@germanbionic.com', '+49 (0)821 209 871 63', 1, 1, 'Segment : Exos actifs AI (Cray X, Apogee) logistique/industrie. Contact France : contact-france@germanbionic.com / +33 (0)7 89 34 58 23. Site : https://www.germanbionic.com'),
+  ('Auxivo', NULL, 'info@auxivo.com', '+41 77 250 35 31', 1, 0, 'Segment : Exos passifs industrie (LiftSuit, DeltaSuit, CarrySuit) + kits éducatifs. Adresse : Sonnenbergstrasse 74, 8603 Schwerzenbach. Site : https://www.auxivo.com'),
+  ('Laevo B.V.', NULL, 'info@laevo.nl', '+31 88 2425 200', 1, 0, 'Segment : Exos dorsaux passifs (Laevo FLEX) pour prévention TMS. Adresse : Spykerstraat 7, 3125 BZ Schiedam. Site : https://www.laevo-exoskeletons.com'),
+  ('Hypershell', NULL, 'support@hypershell.tech', NULL, 1, 0, 'Segment : Exos pour randonnée, trail, outdoor (Hypershell X, Pro X, X Ultra). Site : https://eu.hypershell.tech'),
+  ('Wandercraft', NULL, 'contact@wandercraft.health', '+33 (0)9 72 58 77 05', 1, 0, 'Segment : Exos de marche auto-équilibrés (Atalante, Calvin-40). Site : https://www.wandercraft.eu'),
+  ('Ekso Bionics', NULL, 'hello@eksobionics.com', '+1 (510) 984-1761', 1, 0, 'Segment : Exos de marche (EksoNR, Indego) + exo industriel (Ekso EVO). Adresse : 101 Glacier Point, Suite A, San Rafael, CA 94901. Site : https://eksobionics.com');
+
 
 CREATE TABLE IF NOT EXISTS supplier_products (
   id INT AUTO_INCREMENT PRIMARY KEY,

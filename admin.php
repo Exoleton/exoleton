@@ -5,11 +5,67 @@ $user = require_admin($pdo);
 $currentUser = $user;
 $statusMessage = null;
 
+// Ajout rétrocompatible des colonnes récentes
+try {
+  $pdo->query('SELECT is_featured FROM suppliers LIMIT 1');
+} catch (Exception $e) {
+  $pdo->exec('ALTER TABLE suppliers ADD COLUMN is_featured TINYINT(1) DEFAULT 0');
+}
+
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
   $action = $_POST['action'] ?? '';
 
   try {
     switch ($action) {
+      case 'add_product':
+        $stmt = $pdo->prepare('INSERT INTO products (slug, name, category, tag, price, currency, summary, type, featured_order) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)');
+        $stmt->execute([
+          trim($_POST['slug'] ?? ''),
+          trim($_POST['name'] ?? ''),
+          trim($_POST['category'] ?? ''),
+          trim($_POST['tag'] ?? ''),
+          $_POST['price'] !== '' ? (int)$_POST['price'] : null,
+          'EUR',
+          trim($_POST['summary'] ?? ''),
+          trim($_POST['type'] ?? ''),
+          isset($_POST['is_featured']) ? max(1, (int)($_POST['featured_order'] ?? 1)) : 0,
+        ]);
+        $statusMessage = 'Produit ajouté avec succès.';
+        break;
+
+      case 'update_product':
+        $productId = (int)($_POST['product_id'] ?? 0);
+        $featuredOrder = isset($_POST['is_featured']) ? max(1, (int)($_POST['featured_order'] ?? 1)) : 0;
+        $stmt = $pdo->prepare('UPDATE products SET slug = ?, name = ?, category = ?, tag = ?, price = ?, summary = ?, type = ?, featured_order = ? WHERE id = ?');
+        $stmt->execute([
+          trim($_POST['slug'] ?? ''),
+          trim($_POST['name'] ?? ''),
+          trim($_POST['category'] ?? ''),
+          trim($_POST['tag'] ?? ''),
+          $_POST['price'] !== '' ? (int)$_POST['price'] : null,
+          trim($_POST['summary'] ?? ''),
+          trim($_POST['type'] ?? ''),
+          $featuredOrder,
+          $productId,
+        ]);
+        $statusMessage = 'Produit mis à jour.';
+        break;
+
+      case 'delete_product':
+        $stmt = $pdo->prepare('DELETE FROM products WHERE id = ? LIMIT 1');
+        $stmt->execute([(int)($_POST['product_id'] ?? 0)]);
+        $statusMessage = 'Produit supprimé.';
+        break;
+
+      case 'toggle_product_featured':
+        $stmt = $pdo->prepare('UPDATE products SET featured_order = ? WHERE id = ?');
+        $stmt->execute([
+          (int)($_POST['target_state'] ?? 0) ? 1 : 0,
+          (int)($_POST['product_id'] ?? 0),
+        ]);
+        $statusMessage = 'Mise en avant du produit mise à jour.';
+        break;
+
       case 'add_supplier':
         $stmt = $pdo->prepare('INSERT INTO suppliers (name, contact_name, email, phone, dropshipping_enabled, notes) VALUES (?, ?, ?, ?, ?, ?)');
         $stmt->execute([
@@ -21,6 +77,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
           trim($_POST['notes'] ?? ''),
         ]);
         $statusMessage = 'Fournisseur ajouté avec succès.';
+        break;
+
+      case 'toggle_supplier_featured':
+        $stmt = $pdo->prepare('UPDATE suppliers SET is_featured = ? WHERE id = ?');
+        $stmt->execute([
+          (int)($_POST['target_state'] ?? 0),
+          (int)($_POST['supplier_id'] ?? 0),
+        ]);
+        $statusMessage = 'Statut de mise en avant du fournisseur mis à jour.';
         break;
 
       case 'add_supplier_link':
@@ -67,11 +132,25 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 $allProductsStmt = $pdo->query('SELECT id, name FROM products ORDER BY name');
 $allProducts = $allProductsStmt->fetchAll();
 
+$productsTableStmt = $pdo->query('SELECT id, slug, name, category, tag, price, currency, summary, type, featured_order FROM products ORDER BY name');
+$productsTable = $productsTableStmt->fetchAll();
+
 $suppliersStmt = $pdo->query('SELECT s.*, COUNT(sp.id) AS product_links FROM suppliers s LEFT JOIN supplier_products sp ON sp.supplier_id = s.id GROUP BY s.id ORDER BY s.name');
 $suppliers = $suppliersStmt->fetchAll();
 
 $supplierProductsStmt = $pdo->query('SELECT sp.id, sp.supplier_id, sp.product_id, sp.supplier_sku, sp.buy_price, sp.lead_time_days, s.name AS supplier_name, p.name AS product_name FROM supplier_products sp INNER JOIN suppliers s ON s.id = sp.supplier_id INNER JOIN products p ON p.id = sp.product_id ORDER BY s.name, p.name');
 $supplierProducts = $supplierProductsStmt->fetchAll();
+
+$featuredProductsStmt = $pdo->query('SELECT id, name, slug, category, featured_order FROM products WHERE featured_order > 0 ORDER BY featured_order, name');
+$featuredProducts = $featuredProductsStmt->fetchAll();
+
+$featuredSuppliersStmt = $pdo->query('SELECT id, name, contact_name, is_featured FROM suppliers WHERE is_featured = 1 ORDER BY name');
+$featuredSuppliers = $featuredSuppliersStmt->fetchAll();
+
+$supplierProductsBySupplier = [];
+foreach ($supplierProducts as $link) {
+  $supplierProductsBySupplier[$link['supplier_id']][] = $link;
+}
 
 $announcementsStmt = $pdo->query('SELECT fa.*, p.name AS product_name FROM featured_announcements fa LEFT JOIN products p ON p.id = fa.product_id ORDER BY fa.priority DESC, fa.start_at DESC, fa.id DESC');
 $announcements = $announcementsStmt->fetchAll();
@@ -115,9 +194,7 @@ $announcements = $announcementsStmt->fetchAll();
         <div class="card shadow-sm border-0">
           <div class="card-body p-4 p-lg-5">
             <h1 class="h4 mb-3">Espace d'administration</h1>
-            <p class="text-muted">Vous êtes connecté avec les droits administrateur. Ajoutez ici vos outils de gestion (catalogue, utilisateurs, contenu…).</p>
-
-            <div class="alert alert-info">Cet espace est prêt à accueillir les modules back-office (gestion des produits, des guides, des utilisateurs…).</div>
+            <p class="text-muted">Pilotage des fournisseurs, du catalogue produits et des mises en avant.</p>
 
             <?php if ($statusMessage): ?>
               <div class="alert alert-success"><?= htmlspecialchars($statusMessage) ?></div>
@@ -129,14 +206,99 @@ $announcements = $announcementsStmt->fetchAll();
             </div>
 
             <hr class="my-4">
-
             <div class="row g-4">
-              <div class="col-lg-6">
-                <div class="card h-100 shadow-sm border-0">
+              <div class="col-lg-7">
+                <div class="card shadow-sm border-0 h-100">
                   <div class="card-body">
-                    <h2 class="h5">Fournisseurs (dropshipping)</h2>
-                    <p class="text-muted small">Ajoutez les fournisseurs et activez les partenariats en dropshipping.</p>
+                    <div class="d-flex align-items-center justify-content-between mb-2">
+                      <div>
+                        <h2 class="h5 mb-0">Fournisseurs (liste + produits liés)</h2>
+                        <p class="text-muted small mb-0">Cliquez pour afficher les produits connectés et le statut d’activation.</p>
+                      </div>
+                      <span class="badge bg-primary-subtle text-primary"><?= count($suppliers) ?> fournisseurs</span>
+                    </div>
 
+                    <?php if (!empty($suppliers)): ?>
+                      <div class="accordion" id="supplierAccordion">
+                        <?php foreach ($suppliers as $supplier): ?>
+                          <?php $links = $supplierProductsBySupplier[$supplier['id']] ?? []; ?>
+                          <div class="accordion-item">
+                            <h2 class="accordion-header" id="heading-<?= (int)$supplier['id'] ?>">
+                              <button class="accordion-button collapsed d-flex flex-wrap gap-2" type="button" data-bs-toggle="collapse" data-bs-target="#collapse-<?= (int)$supplier['id'] ?>" aria-expanded="false" aria-controls="collapse-<?= (int)$supplier['id'] ?>">
+                                <span class="fw-semibold me-2"><?= htmlspecialchars($supplier['name']) ?></span>
+                                <?php if ($supplier['is_featured'] ?? false): ?>
+                                  <span class="badge bg-warning text-dark">Mise en avant</span>
+                                <?php endif; ?>
+                                <?php if (!$supplier['dropshipping_enabled']): ?>
+                                  <span class="badge bg-secondary">Dropshipping inactif</span>
+                                <?php endif; ?>
+                                <span class="badge bg-light text-dark ms-auto"><?= count($links) ?> produit(s)</span>
+                              </button>
+                            </h2>
+                            <div id="collapse-<?= (int)$supplier['id'] ?>" class="accordion-collapse collapse" aria-labelledby="heading-<?= (int)$supplier['id'] ?>" data-bs-parent="#supplierAccordion">
+                              <div class="accordion-body">
+                                <div class="d-flex flex-wrap gap-3 align-items-center mb-3">
+                                  <div>
+                                    <div class="fw-semibold">Contact</div>
+                                    <div class="text-muted small"><?= htmlspecialchars($supplier['contact_name'] ?: '—') ?></div>
+                                    <div class="text-muted small"><?= htmlspecialchars($supplier['email'] ?: '') ?></div>
+                                    <div class="text-muted small"><?= htmlspecialchars($supplier['phone'] ?: '') ?></div>
+                                  </div>
+                                  <div class="ms-auto">
+                                    <form method="post" class="d-inline">
+                                      <input type="hidden" name="action" value="toggle_supplier_featured">
+                                      <input type="hidden" name="supplier_id" value="<?= (int)$supplier['id'] ?>">
+                                      <input type="hidden" name="target_state" value="<?= $supplier['is_featured'] ? 0 : 1 ?>">
+                                      <button class="btn btn-sm <?= $supplier['is_featured'] ? 'btn-warning' : 'btn-outline-warning' ?>" type="submit"><?= $supplier['is_featured'] ? 'Retirer de la mise en avant' : 'Mettre en avant' ?></button>
+                                    </form>
+                                  </div>
+                                </div>
+                                <?php if (!empty($supplier['notes'])): ?>
+                                  <p class="small bg-light p-2 rounded">Notes internes : <?= nl2br(htmlspecialchars($supplier['notes'])) ?></p>
+                                <?php endif; ?>
+                                <?php if (!empty($links)): ?>
+                                  <div class="table-responsive">
+                                    <table class="table table-sm align-middle">
+                                      <thead>
+                                        <tr>
+                                          <th>Produit</th>
+                                          <th>SKU</th>
+                                          <th class="text-end">Prix d'achat</th>
+                                          <th class="text-end">Délai</th>
+                                        </tr>
+                                      </thead>
+                                      <tbody>
+                                        <?php foreach ($links as $link): ?>
+                                          <tr>
+                                            <td><?= htmlspecialchars($link['product_name']) ?></td>
+                                            <td class="text-muted small"><?= htmlspecialchars($link['supplier_sku'] ?: '—') ?></td>
+                                            <td class="text-end"><?= $link['buy_price'] ? number_format((int)$link['buy_price'], 0, ',', ' ') . ' €' : '—' ?></td>
+                                            <td class="text-end"><?= $link['lead_time_days'] !== null ? (int)$link['lead_time_days'] . ' j' : '—' ?></td>
+                                          </tr>
+                                        <?php endforeach; ?>
+                                      </tbody>
+                                    </table>
+                                  </div>
+                                <?php else: ?>
+                                  <p class="text-muted small mb-0">Aucun produit lié pour l’instant.</p>
+                                <?php endif; ?>
+                              </div>
+                            </div>
+                          </div>
+                        <?php endforeach; ?>
+                      </div>
+                    <?php else: ?>
+                      <div class="alert alert-light border">Aucun fournisseur enregistré. Ajoutez-en un via le formulaire ci-contre.</div>
+                    <?php endif; ?>
+                  </div>
+                </div>
+              </div>
+
+              <div class="col-lg-5">
+                <div class="card shadow-sm border-0 mb-3">
+                  <div class="card-body">
+                    <h2 class="h6">Ajouter un fournisseur</h2>
+                    <p class="text-muted small">Création rapide d’une fiche fournisseur avec contact et statut dropshipping.</p>
                     <form method="post" class="vstack gap-3">
                       <input type="hidden" name="action" value="add_supplier">
                       <div class="row g-3">
@@ -169,45 +331,15 @@ $announcements = $announcementsStmt->fetchAll();
                         <button class="btn btn-primary" type="submit">Ajouter le fournisseur</button>
                       </div>
                     </form>
-
-                    <?php if (!empty($suppliers)): ?>
-                      <div class="table-responsive mt-4">
-                        <table class="table table-sm align-middle">
-                          <thead>
-                            <tr>
-                              <th>Nom</th>
-                              <th>Contact</th>
-                              <th class="text-end">Produits liés</th>
-                            </tr>
-                          </thead>
-                          <tbody>
-                            <?php foreach ($suppliers as $supplier): ?>
-                              <tr>
-                                <td><?= htmlspecialchars($supplier['name']) ?><?= $supplier['dropshipping_enabled'] ? '' : ' <span class="badge bg-secondary">Off</span>' ?></td>
-                                <td class="text-muted small">
-                                  <?= htmlspecialchars($supplier['contact_name'] ?: '—') ?><br>
-                                  <?= htmlspecialchars($supplier['email'] ?: ''); ?>
-                                </td>
-                                <td class="text-end"><span class="badge bg-light text-dark"><?= (int)$supplier['product_links'] ?></span></td>
-                              </tr>
-                            <?php endforeach; ?>
-                          </tbody>
-                        </table>
-                      </div>
-                    <?php endif; ?>
                   </div>
                 </div>
-              </div>
 
-              <div class="col-lg-6">
-                <div class="card h-100 shadow-sm border-0">
+                <div class="card shadow-sm border-0">
                   <div class="card-body">
-                    <h2 class="h5">Produits liés aux fournisseurs</h2>
-                    <p class="text-muted small">Associez un produit catalogue à un fournisseur et précisez les conditions d’achat.</p>
-
+                    <h2 class="h6">Lier un produit à un fournisseur</h2>
                     <form method="post" class="row g-3 align-items-end">
                       <input type="hidden" name="action" value="add_supplier_link">
-                      <div class="col-md-6">
+                      <div class="col-12">
                         <label class="form-label">Fournisseur</label>
                         <select name="supplier_id" class="form-select" required>
                           <option value="">Sélectionner…</option>
@@ -216,7 +348,7 @@ $announcements = $announcementsStmt->fetchAll();
                           <?php endforeach; ?>
                         </select>
                       </div>
-                      <div class="col-md-6">
+                      <div class="col-12">
                         <label class="form-label">Produit</label>
                         <select name="product_id" class="form-select" required>
                           <option value="">Sélectionner…</option>
@@ -238,30 +370,267 @@ $announcements = $announcementsStmt->fetchAll();
                         <input type="number" name="lead_time_days" class="form-control" min="0" step="1" placeholder="0">
                       </div>
                       <div class="col-12">
-                        <button class="btn btn-primary" type="submit">Associer</button>
+                        <button class="btn btn-primary w-100" type="submit">Associer</button>
+                      </div>
+                    </form>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <hr class="my-4">
+
+            <div class="card shadow-sm border-0 mb-4">
+              <div class="card-body">
+                <div class="d-flex align-items-center justify-content-between mb-3">
+                  <div>
+                    <h2 class="h5 mb-0">Catalogue produits (CRUD)</h2>
+                    <p class="text-muted small mb-0">Créer, modifier ou supprimer les produits et gérer leur mise en avant.</p>
+                  </div>
+                  <span class="badge bg-primary-subtle text-primary"><?= count($productsTable) ?> produits</span>
+                </div>
+
+                <div class="row g-4">
+                  <div class="col-lg-5">
+                    <div class="border rounded p-3 bg-light h-100">
+                      <h3 class="h6">Ajouter un produit</h3>
+                      <form method="post" class="vstack gap-3">
+                        <input type="hidden" name="action" value="add_product">
+                        <div class="row g-3">
+                          <div class="col-sm-6">
+                            <label class="form-label">Nom</label>
+                            <input type="text" name="name" class="form-control" required>
+                          </div>
+                          <div class="col-sm-6">
+                            <label class="form-label">Slug</label>
+                            <input type="text" name="slug" class="form-control" placeholder="exolift-2" required>
+                          </div>
+                          <div class="col-sm-6">
+                            <label class="form-label">Catégorie</label>
+                            <input type="text" name="category" class="form-control" placeholder="Industriel" required>
+                          </div>
+                          <div class="col-sm-6">
+                            <label class="form-label">Tag</label>
+                            <input type="text" name="tag" class="form-control" placeholder="Logistique" required>
+                          </div>
+                          <div class="col-sm-6">
+                            <label class="form-label">Type</label>
+                            <input type="text" name="type" class="form-control" placeholder="Actif / Passif">
+                          </div>
+                          <div class="col-sm-6">
+                            <label class="form-label">Prix (€)</label>
+                            <input type="number" name="price" class="form-control" min="0" step="1">
+                          </div>
+                          <div class="col-12">
+                            <label class="form-label">Résumé</label>
+                            <textarea name="summary" class="form-control" rows="2" placeholder="Pitch court"></textarea>
+                          </div>
+                          <div class="col-12 form-check">
+                            <input class="form-check-input" type="checkbox" value="1" id="product_featured" name="is_featured">
+                            <label class="form-check-label" for="product_featured">Mettre en avant</label>
+                          </div>
+                          <div class="col-12">
+                            <label class="form-label">Ordre de mise en avant</label>
+                            <input type="number" name="featured_order" class="form-control" min="1" value="1">
+                          </div>
+                        </div>
+                        <button class="btn btn-success" type="submit">Créer le produit</button>
+                      </form>
+                    </div>
+                  </div>
+
+                  <div class="col-lg-7">
+                    <div class="list-group">
+                      <?php foreach ($productsTable as $product): ?>
+                        <div class="list-group-item">
+                          <form method="post" class="row g-2 align-items-end">
+                            <input type="hidden" name="product_id" value="<?= (int)$product['id'] ?>">
+                            <div class="col-sm-6 col-md-4">
+                              <label class="form-label small">Nom</label>
+                              <input type="text" name="name" class="form-control form-control-sm" value="<?= htmlspecialchars($product['name']) ?>" required>
+                            </div>
+                            <div class="col-sm-6 col-md-4">
+                              <label class="form-label small">Slug</label>
+                              <input type="text" name="slug" class="form-control form-control-sm" value="<?= htmlspecialchars($product['slug']) ?>" required>
+                            </div>
+                            <div class="col-sm-6 col-md-4">
+                              <label class="form-label small">Catégorie</label>
+                              <input type="text" name="category" class="form-control form-control-sm" value="<?= htmlspecialchars($product['category']) ?>" required>
+                            </div>
+                            <div class="col-sm-6 col-md-4">
+                              <label class="form-label small">Tag</label>
+                              <input type="text" name="tag" class="form-control form-control-sm" value="<?= htmlspecialchars($product['tag']) ?>" required>
+                            </div>
+                            <div class="col-sm-6 col-md-4">
+                              <label class="form-label small">Type</label>
+                              <input type="text" name="type" class="form-control form-control-sm" value="<?= htmlspecialchars($product['type']) ?>">
+                            </div>
+                            <div class="col-sm-6 col-md-4">
+                              <label class="form-label small">Prix (€)</label>
+                              <input type="number" name="price" class="form-control form-control-sm" min="0" step="1" value="<?= htmlspecialchars((string)$product['price']) ?>">
+                            </div>
+                            <div class="col-12">
+                              <label class="form-label small">Résumé</label>
+                              <input type="text" name="summary" class="form-control form-control-sm" value="<?= htmlspecialchars($product['summary']) ?>">
+                            </div>
+                            <div class="col-md-4">
+                              <div class="form-check mt-2">
+                                <input class="form-check-input" type="checkbox" value="1" id="featured-<?= (int)$product['id'] ?>" name="is_featured" <?= $product['featured_order'] > 0 ? 'checked' : '' ?>>
+                                <label class="form-check-label small" for="featured-<?= (int)$product['id'] ?>">Mettre en avant</label>
+                              </div>
+                            </div>
+                            <div class="col-md-4">
+                              <label class="form-label small">Ordre</label>
+                              <input type="number" name="featured_order" class="form-control form-control-sm" min="1" value="<?= (int)max(1, (int)$product['featured_order']) ?>">
+                            </div>
+                            <div class="col-md-4 text-end">
+                              <button class="btn btn-sm btn-primary" type="submit" name="action" value="update_product">Sauvegarder</button>
+                              <button class="btn btn-sm btn-outline-danger" type="submit" name="action" value="delete_product" onclick="return confirm('Supprimer ce produit ?');">Supprimer</button>
+                            </div>
+                          </form>
+                        </div>
+                      <?php endforeach; ?>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="card shadow-sm border-0">
+              <div class="card-body">
+                <div class="row g-4">
+                  <div class="col-lg-5">
+                    <h2 class="h5">Mises en avant</h2>
+                    <p class="text-muted small">Gestion des produits et fournisseurs mis en avant sur le site.</p>
+
+                    <h3 class="h6 mt-3">Produits mis en avant</h3>
+                    <?php if (!empty($featuredProducts)): ?>
+                      <ul class="list-group list-group-flush mb-3">
+                        <?php foreach ($featuredProducts as $product): ?>
+                          <li class="list-group-item d-flex justify-content-between align-items-center">
+                            <span><?= htmlspecialchars($product['name']) ?> <span class="text-muted small">(<?= htmlspecialchars($product['category']) ?>)</span></span>
+                            <form method="post" class="d-inline">
+                              <input type="hidden" name="action" value="toggle_product_featured">
+                              <input type="hidden" name="product_id" value="<?= (int)$product['id'] ?>">
+                              <input type="hidden" name="target_state" value="0">
+                              <button class="btn btn-sm btn-outline-secondary" type="submit">Retirer</button>
+                            </form>
+                          </li>
+                        <?php endforeach; ?>
+                      </ul>
+                    <?php else: ?>
+                      <p class="text-muted small">Aucun produit mis en avant pour le moment.</p>
+                    <?php endif; ?>
+
+                    <h3 class="h6">Fournisseurs mis en avant</h3>
+                    <?php if (!empty($featuredSuppliers)): ?>
+                      <ul class="list-group list-group-flush">
+                        <?php foreach ($featuredSuppliers as $supplier): ?>
+                          <li class="list-group-item d-flex justify-content-between align-items-center">
+                            <span><?= htmlspecialchars($supplier['name']) ?> <span class="text-muted small"><?= htmlspecialchars($supplier['contact_name'] ?: '') ?></span></span>
+                            <form method="post" class="d-inline">
+                              <input type="hidden" name="action" value="toggle_supplier_featured">
+                              <input type="hidden" name="supplier_id" value="<?= (int)$supplier['id'] ?>">
+                              <input type="hidden" name="target_state" value="0">
+                              <button class="btn btn-sm btn-outline-secondary" type="submit">Retirer</button>
+                            </form>
+                          </li>
+                        <?php endforeach; ?>
+                      </ul>
+                    <?php else: ?>
+                      <p class="text-muted small">Aucun fournisseur mis en avant.</p>
+                    <?php endif; ?>
+                  </div>
+
+                  <div class="col-lg-7">
+                    <h2 class="h5">Annonces "Sélection du moment"</h2>
+                    <p class="text-muted small">Définissez les messages et produits à mettre en avant sur la page d’accueil.</p>
+
+                    <form method="post" class="row g-3 align-items-end">
+                      <input type="hidden" name="action" value="add_announcement">
+                      <div class="col-md-4">
+                        <label class="form-label">Titre</label>
+                        <input type="text" name="title" class="form-control" required>
+                      </div>
+                      <div class="col-md-4">
+                        <label class="form-label">Message court</label>
+                        <input type="text" name="message" class="form-control" placeholder="Ce qui rend l’offre unique">
+                      </div>
+                      <div class="col-md-4">
+                        <label class="form-label">URL personnalisée</label>
+                        <input type="url" name="link_url" class="form-control" placeholder="https://… (facultatif)">
+                      </div>
+                      <div class="col-md-3">
+                        <label class="form-label">Produit lié</label>
+                        <select name="product_id" class="form-select">
+                          <option value="">Aucun</option>
+                          <?php foreach ($allProducts as $product): ?>
+                            <option value="<?= (int)$product['id'] ?>"><?= htmlspecialchars($product['name']) ?></option>
+                          <?php endforeach; ?>
+                        </select>
+                      </div>
+                      <div class="col-md-3">
+                        <label class="form-label">Priorité</label>
+                        <input type="number" name="priority" class="form-control" value="0" step="1">
+                      </div>
+                      <div class="col-md-3">
+                        <label class="form-label">Début</label>
+                        <input type="datetime-local" name="start_at" class="form-control">
+                      </div>
+                      <div class="col-md-3">
+                        <label class="form-label">Fin</label>
+                        <input type="datetime-local" name="end_at" class="form-control">
+                      </div>
+                      <div class="col-12 form-check">
+                        <input class="form-check-input" type="checkbox" value="1" id="is_active" name="is_active" checked>
+                        <label class="form-check-label" for="is_active">Activer immédiatement</label>
+                      </div>
+                      <div class="col-12">
+                        <button class="btn btn-primary" type="submit">Ajouter l’annonce</button>
                       </div>
                     </form>
 
-                    <?php if (!empty($supplierProducts)): ?>
+                    <?php if (!empty($announcements)): ?>
                       <div class="table-responsive mt-4">
                         <table class="table table-sm align-middle">
                           <thead>
                             <tr>
-                              <th>Fournisseur</th>
-                              <th>Produit</th>
-                              <th>SKU</th>
-                              <th class="text-end">Prix d'achat</th>
-                              <th class="text-end">Délai</th>
+                              <th>Titre</th>
+                              <th>Produit/URL</th>
+                              <th>Période</th>
+                              <th>Priorité</th>
+                              <th class="text-end">Statut</th>
                             </tr>
                           </thead>
                           <tbody>
-                            <?php foreach ($supplierProducts as $link): ?>
+                            <?php foreach ($announcements as $announcement): ?>
                               <tr>
-                                <td><?= htmlspecialchars($link['supplier_name']) ?></td>
-                                <td><?= htmlspecialchars($link['product_name']) ?></td>
-                                <td class="text-muted small"><?= htmlspecialchars($link['supplier_sku'] ?: '—') ?></td>
-                                <td class="text-end"><?= $link['buy_price'] ? number_format((int)$link['buy_price'], 0, ',', ' ') . ' €' : '—' ?></td>
-                                <td class="text-end"><?= $link['lead_time_days'] !== null ? (int)$link['lead_time_days'] . ' j' : '—' ?></td>
+                                <td>
+                                  <strong><?= htmlspecialchars($announcement['title']) ?></strong><br>
+                                  <span class="text-muted small"><?= htmlspecialchars($announcement['message'] ?: '—') ?></span>
+                                </td>
+                                <td class="small">
+                                  <?php if (!empty($announcement['product_name'])): ?>
+                                    Produit : <?= htmlspecialchars($announcement['product_name']) ?><br>
+                                  <?php endif; ?>
+                                  <?= htmlspecialchars($announcement['link_url'] ?: '—') ?>
+                                </td>
+                                <td class="small text-muted">
+                                  <?= $announcement['start_at'] ? htmlspecialchars($announcement['start_at']) : '—' ?>
+                                  →
+                                  <?= $announcement['end_at'] ? htmlspecialchars($announcement['end_at']) : '—' ?>
+                                </td>
+                                <td><?= (int)$announcement['priority'] ?></td>
+                                <td class="text-end">
+                                  <form method="post" class="d-inline">
+                                    <input type="hidden" name="action" value="toggle_announcement">
+                                    <input type="hidden" name="announcement_id" value="<?= (int)$announcement['id'] ?>">
+                                    <input type="hidden" name="target_state" value="<?= $announcement['is_active'] ? 0 : 1 ?>">
+                                    <button class="btn btn-sm <?= $announcement['is_active'] ? 'btn-success' : 'btn-outline-secondary' ?>" type="submit">
+                                      <?= $announcement['is_active'] ? 'Actif' : 'Inactif' ?>
+                                    </button>
+                                  </form>
+                                </td>
                               </tr>
                             <?php endforeach; ?>
                           </tbody>
@@ -270,107 +639,6 @@ $announcements = $announcementsStmt->fetchAll();
                     <?php endif; ?>
                   </div>
                 </div>
-              </div>
-            </div>
-
-            <hr class="my-4">
-
-            <div class="card shadow-sm border-0">
-              <div class="card-body">
-                <h2 class="h5">Annonces "Sélection du moment"</h2>
-                <p class="text-muted small">Définissez les messages et produits à mettre en avant sur la page d’accueil.</p>
-
-                <form method="post" class="row g-3 align-items-end">
-                  <input type="hidden" name="action" value="add_announcement">
-                  <div class="col-md-4">
-                    <label class="form-label">Titre</label>
-                    <input type="text" name="title" class="form-control" required>
-                  </div>
-                  <div class="col-md-4">
-                    <label class="form-label">Message court</label>
-                    <input type="text" name="message" class="form-control" placeholder="Ce qui rend l’offre unique">
-                  </div>
-                  <div class="col-md-4">
-                    <label class="form-label">URL personnalisée</label>
-                    <input type="url" name="link_url" class="form-control" placeholder="https://… (facultatif)">
-                  </div>
-                  <div class="col-md-3">
-                    <label class="form-label">Produit lié</label>
-                    <select name="product_id" class="form-select">
-                      <option value="">Aucun</option>
-                      <?php foreach ($allProducts as $product): ?>
-                        <option value="<?= (int)$product['id'] ?>"><?= htmlspecialchars($product['name']) ?></option>
-                      <?php endforeach; ?>
-                    </select>
-                  </div>
-                  <div class="col-md-3">
-                    <label class="form-label">Priorité</label>
-                    <input type="number" name="priority" class="form-control" value="0" step="1">
-                  </div>
-                  <div class="col-md-3">
-                    <label class="form-label">Début</label>
-                    <input type="datetime-local" name="start_at" class="form-control">
-                  </div>
-                  <div class="col-md-3">
-                    <label class="form-label">Fin</label>
-                    <input type="datetime-local" name="end_at" class="form-control">
-                  </div>
-                  <div class="col-12 form-check">
-                    <input class="form-check-input" type="checkbox" value="1" id="is_active" name="is_active" checked>
-                    <label class="form-check-label" for="is_active">Activer immédiatement</label>
-                  </div>
-                  <div class="col-12">
-                    <button class="btn btn-primary" type="submit">Ajouter l’annonce</button>
-                  </div>
-                </form>
-
-                <?php if (!empty($announcements)): ?>
-                  <div class="table-responsive mt-4">
-                    <table class="table table-sm align-middle">
-                      <thead>
-                        <tr>
-                          <th>Titre</th>
-                          <th>Produit/URL</th>
-                          <th>Période</th>
-                          <th>Priorité</th>
-                          <th class="text-end">Statut</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        <?php foreach ($announcements as $announcement): ?>
-                          <tr>
-                            <td>
-                              <strong><?= htmlspecialchars($announcement['title']) ?></strong><br>
-                              <span class="text-muted small"><?= htmlspecialchars($announcement['message'] ?: '—') ?></span>
-                            </td>
-                            <td class="small">
-                              <?php if (!empty($announcement['product_name'])): ?>
-                                Produit : <?= htmlspecialchars($announcement['product_name']) ?><br>
-                              <?php endif; ?>
-                              <?= htmlspecialchars($announcement['link_url'] ?: '—') ?>
-                            </td>
-                            <td class="small text-muted">
-                              <?= $announcement['start_at'] ? htmlspecialchars($announcement['start_at']) : '—' ?>
-                              →
-                              <?= $announcement['end_at'] ? htmlspecialchars($announcement['end_at']) : '—' ?>
-                            </td>
-                            <td><?= (int)$announcement['priority'] ?></td>
-                            <td class="text-end">
-                              <form method="post" class="d-inline">
-                                <input type="hidden" name="action" value="toggle_announcement">
-                                <input type="hidden" name="announcement_id" value="<?= (int)$announcement['id'] ?>">
-                                <input type="hidden" name="target_state" value="<?= $announcement['is_active'] ? 0 : 1 ?>">
-                                <button class="btn btn-sm <?= $announcement['is_active'] ? 'btn-success' : 'btn-outline-secondary' ?>" type="submit">
-                                  <?= $announcement['is_active'] ? 'Actif' : 'Inactif' ?>
-                                </button>
-                              </form>
-                            </td>
-                          </tr>
-                        <?php endforeach; ?>
-                      </tbody>
-                    </table>
-                  </div>
-                <?php endif; ?>
               </div>
             </div>
           </div>
