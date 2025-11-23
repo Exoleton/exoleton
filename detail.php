@@ -97,20 +97,24 @@ $alternatives = $alternativesStmt->fetchAll();
       </button>
       <nav id="mainNav" class="collapse navbar-collapse">
         <ul class="navbar-nav ms-auto mb-2 mb-lg-0 align-items-lg-center">
-          <li class="nav-item"><a class="nav-link" href="index.php">Accueil</a></li>
+          <li class="nav-item"><a class="nav-link" href="index.php" data-i18n="nav.home">Accueil</a></li>
           <li class="nav-item dropdown">
-            <a class="nav-link dropdown-toggle active" href="#produits" id="produitsMenu" role="button" data-bs-toggle="dropdown" aria-expanded="false">Produits</a>
+            <a class="nav-link dropdown-toggle active" href="#produits" id="produitsMenu" role="button" data-bs-toggle="dropdown" aria-expanded="false" data-i18n="nav.products">Produits</a>
             <ul class="dropdown-menu" aria-labelledby="produitsMenu">
-              <li><a class="dropdown-item" href="index.php#produits">Industriel</a></li>
-              <li><a class="dropdown-item" href="index.php#produits">Médical / Rééducation</a></li>
-              <li><a class="dropdown-item" href="index.php#produits">Particulier / Quotidien</a></li>
-              <li><a class="dropdown-item" href="index.php#produits">Collectivités / Soins</a></li>
+              <li><a class="dropdown-item" href="index.php#produits" data-i18n="nav.industrial">Industriel</a></li>
+              <li><a class="dropdown-item" href="index.php#produits" data-i18n="nav.medical">Médical / Rééducation</a></li>
+              <li><a class="dropdown-item" href="index.php#produits" data-i18n="nav.consumer">Particulier / Quotidien</a></li>
+              <li><a class="dropdown-item" href="index.php#produits" data-i18n="nav.care">Collectivités / Soins</a></li>
             </ul>
           </li>
-          <li class="nav-item"><a class="nav-link" href="index.php#comparateur">Comparateur</a></li>
-          <li class="nav-item"><a class="nav-link" href="index.php#guides">Guides</a></li>
+          <li class="nav-item"><a class="nav-link" href="index.php#comparateur" data-i18n="nav.comparator">Comparateur</a></li>
+          <li class="nav-item"><a class="nav-link" href="index.php#guides" data-i18n="nav.guides">Guides</a></li>
           <li class="nav-item ms-lg-3">
-            <a class="btn btn-primary" href="#demo">Demander une démo</a>
+            <a class="btn btn-primary" href="#demo" data-i18n="nav.demo">Demander une démo</a>
+          </li>
+          <li class="nav-item ms-lg-3">
+            <label class="visually-hidden" for="languageSwitcherDetail" data-i18n="lang.label">Langue</label>
+            <select id="languageSwitcherDetail" class="form-select form-select-sm" data-language-switcher></select>
           </li>
         </ul>
       </nav>
@@ -122,8 +126,8 @@ $alternatives = $alternativesStmt->fetchAll();
     <!-- Fil d’Ariane -->
     <nav class="container" aria-label="breadcrumb">
       <ol class="breadcrumb small mb-2">
-        <li class="breadcrumb-item"><a href="index.php">Accueil</a></li>
-        <li class="breadcrumb-item"><a href="index.php#produits">Produits</a></li>
+        <li class="breadcrumb-item"><a href="index.php" data-i18n="nav.home">Accueil</a></li>
+        <li class="breadcrumb-item"><a href="index.php#produits" data-i18n="nav.products">Produits</a></li>
         <li class="breadcrumb-item active" aria-current="page"><?= htmlspecialchars($product['name']) ?></li>
       </ol>
     </nav>
@@ -175,23 +179,23 @@ $alternatives = $alternativesStmt->fetchAll();
         <div class="col-lg-6">
           <div class="card h-100 shadow-sm">
             <div class="card-body">
-              <h2 class="h4 mb-3">À propos</h2>
+              <h2 class="h4 mb-3" data-i18n="product.about">À propos</h2>
               <p class="text-muted"><?= htmlspecialchars($product['summary']) ?></p>
               <div class="d-flex align-items-center justify-content-between my-3">
                 <div>
-                  <div class="small text-muted">Tarif indicatif</div>
+                  <div class="small text-muted" data-i18n="product.priceLabel">Tarif indicatif</div>
                   <div class="h4 mb-0"><?= price_html($product['price'], $product['currency']) ?></div>
                 </div>
                 <div class="d-flex gap-2">
-                  <a href="#demo" class="btn btn-primary">Demande de démo</a>
-                  <a href="#devis" class="btn btn-outline-primary">Devis</a>
+                  <a href="#demo" class="btn btn-primary" data-i18n="product.demoButton">Demande de démo</a>
+                  <a href="#devis" class="btn btn-outline-primary" data-i18n="product.quoteButton">Devis</a>
                 </div>
               </div>
               <hr>
               <ul class="list-unstyled mb-0">
-                <li class="mb-2">• Essai sur site possible (selon zone)</li>
-                <li class="mb-2">• Formation opérateur incluse</li>
-                <li class="mb-2">• Financements et aides possibles</li>
+                <li class="mb-2" data-i18n="product.bullet1">• Essai sur site possible (selon zone)</li>
+                <li class="mb-2" data-i18n="product.bullet2">• Formation opérateur incluse</li>
+                <li class="mb-2" data-i18n="product.bullet3">• Financements et aides possibles</li>
               </ul>
             </div>
           </div>
@@ -202,7 +206,7 @@ $alternatives = $alternativesStmt->fetchAll();
     <!-- Use cases -->
     <section class="py-5 bg-light border-top">
       <div class="container">
-        <h2 class="h4 mb-4">Cas d’usage</h2>
+        <h2 class="h4 mb-4" data-i18n="product.useCases">Cas d’usage</h2>
         <div class="row g-4">
                   <?php foreach($use_cases as $uc): ?>
                     <div class="col-md-4">
@@ -226,7 +230,7 @@ $alternatives = $alternativesStmt->fetchAll();
       <div class="container">
         <div class="row g-4">
           <div class="col-lg-7">
-            <h2 class="h4 mb-3">Caractéristiques techniques</h2>
+            <h2 class="h4 mb-3" data-i18n="product.specs">Caractéristiques techniques</h2>
             <div class="table-responsive rounded-3 shadow-sm bg-white">
               <table class="table align-middle mb-0 specs">
                 <tbody>
@@ -239,19 +243,19 @@ $alternatives = $alternativesStmt->fetchAll();
                 </tbody>
               </table>
             </div>
-            <small class="text-muted d-block mt-2">*Données indicatives, variables selon configuration.</small>
+            <small class="text-muted d-block mt-2" data-i18n="product.specsNote">*Données indicatives, variables selon configuration.</small>
           </div>
           <div class="col-lg-5">
-            <h2 class="h4 mb-3">Téléchargements</h2>
+            <h2 class="h4 mb-3" data-i18n="product.downloads">Téléchargements</h2>
             <ul class="list-group">
               <?php foreach($downloads as $d): ?>
                 <li class="list-group-item d-flex align-items-center justify-content-between">
                   <span><?= htmlspecialchars($d['label']) ?></span>
-                  <a class="btn btn-outline-secondary btn-sm" href="<?= htmlspecialchars($d['href']) ?>" target="_blank" rel="noopener">PDF</a>
+                  <a class="btn btn-outline-secondary btn-sm" href="<?= htmlspecialchars($d['href']) ?>" target="_blank" rel="noopener" data-i18n="product.downloadCta">PDF</a>
                 </li>
               <?php endforeach; ?>
             </ul>
-            <div class="alert alert-info mt-3 mb-0 small">
+            <div class="alert alert-info mt-3 mb-0 small" data-i18n-html="true" data-i18n="product.downloadHelp">
               Besoin d’un document spécifique (fiche technique, essais, certificats) ? <a href="#contact" class="alert-link">Contacte-nous</a>.
             </div>
           </div>
@@ -264,82 +268,82 @@ $alternatives = $alternativesStmt->fetchAll();
       <div class="container">
         <div class="row g-4">
           <div class="col-lg-6">
-            <h2 class="h4 mb-3">Demander une démo</h2>
+            <h2 class="h4 mb-3" data-i18n="product.demoTitle">Demander une démo</h2>
             <form class="row g-3" action="#" method="post" onsubmit="return false;">
               <div class="col-md-6">
-                <label class="form-label">Nom</label>
+                <label class="form-label" data-i18n="product.form.name">Nom</label>
                 <input type="text" class="form-control" required>
               </div>
               <div class="col-md-6">
-                <label class="form-label">Email</label>
+                <label class="form-label" data-i18n="product.form.email">Email</label>
                 <input type="email" class="form-control" required>
               </div>
               <div class="col-md-6">
-                <label class="form-label">Secteur</label>
+                <label class="form-label" data-i18n="product.form.sector">Secteur</label>
                 <select class="form-select" required>
-                  <option value="">Sélectionner</option>
-                  <option>Logistique</option><option>Industrie</option><option>BTP</option><option>Santé</option><option>Autre</option>
+                  <option value="" data-i18n="product.form.select">Sélectionner</option>
+                  <option data-i18n="product.form.logistics">Logistique</option><option data-i18n="product.form.industry">Industrie</option><option data-i18n="product.form.construction">BTP</option><option data-i18n="product.form.health">Santé</option><option data-i18n="product.form.other">Autre</option>
                 </select>
               </div>
               <div class="col-md-6">
-                <label class="form-label">Code postal</label>
+                <label class="form-label" data-i18n="product.form.zip">Code postal</label>
                 <input type="text" class="form-control" pattern="[0-9]{5}" placeholder="75001" required>
               </div>
               <div class="col-12">
-                <label class="form-label">Votre besoin</label>
-                <textarea class="form-control" rows="3" placeholder="Contexte, postes concernés, objectifs…"></textarea>
+                <label class="form-label" data-i18n="product.form.need">Votre besoin</label>
+                <textarea class="form-control" rows="3" placeholder="Contexte, postes concernés, objectifs…" data-i18n-placeholder="product.form.needPlaceholder"></textarea>
               </div>
               <div class="col-12">
-                <button class="btn btn-light btn-lg">Envoyer la demande</button>
+                <button class="btn btn-light btn-lg" data-i18n="product.form.send">Envoyer la demande</button>
               </div>
             </form>
           </div>
 
           <div id="devis" class="col-lg-6">
-            <h2 class="h4 mb-3">Devis rapide</h2>
+            <h2 class="h4 mb-3" data-i18n="product.quoteTitle">Devis rapide</h2>
             <form class="row g-3" action="#" method="post" onsubmit="return false;">
               <div class="col-md-6">
-                <label class="form-label">Quantité</label>
+                <label class="form-label" data-i18n="product.quote.quantity">Quantité</label>
                 <input type="number" class="form-control" id="qte" value="1" min="1">
               </div>
               <div class="col-md-6">
-                <label class="form-label">Options</label>
+                <label class="form-label" data-i18n="product.quote.options">Options</label>
                 <select class="form-select" id="opt">
-                  <option value="0">Aucune</option>
-                  <option value="450">Batterie supplémentaire (+450€)</option>
-                  <option value="190">Harnais XL (+190€)</option>
+                  <option value="0" data-i18n="product.quote.optionNone">Aucune</option>
+                  <option value="450" data-i18n="product.quote.optionBattery">Batterie supplémentaire (+450€)</option>
+                  <option value="190" data-i18n="product.quote.optionHarness">Harnais XL (+190€)</option>
                 </select>
               </div>
               <div class="col-12">
                 <div class="p-3 bg-white text-dark rounded-3 d-flex align-items-center justify-content-between">
                   <div>
-                    <div class="small text-muted">Estimation</div>
+                    <div class="small text-muted" data-i18n="product.quote.estimate">Estimation</div>
                     <div class="h5 mb-0" id="estimation"><?= price_html($product['price']) ?></div>
                   </div>
-                  <button class="btn btn-primary">Recevoir le devis</button>
+                  <button class="btn btn-primary" data-i18n="product.quote.receive">Recevoir le devis</button>
                 </div>
               </div>
             </form>
 
             <div class="mt-4 p-3 bg-white text-dark rounded-3">
-              <h3 class="h6">ROI rapide (indicatif)</h3>
+              <h3 class="h6" data-i18n="product.roi.title">ROI rapide (indicatif)</h3>
               <div class="row g-2">
                 <div class="col-6">
-                  <label class="form-label small">Opérateurs</label>
+                  <label class="form-label small" data-i18n="product.roi.operators">Opérateurs</label>
                   <input type="number" class="form-control form-control-sm" id="op" value="5" min="1">
                 </div>
                 <div class="col-6">
-                  <label class="form-label small">AT/an évités</label>
+                  <label class="form-label small" data-i18n="product.roi.at">AT/an évités</label>
                   <input type="number" class="form-control form-control-sm" id="at" value="1" min="0">
                 </div>
                 <div class="col-12">
-                  <label class="form-label small">Levages/jour</label>
+                  <label class="form-label small" data-i18n="product.roi.lifts">Levages/jour</label>
                   <input type="number" class="form-control form-control-sm" id="lev" value="200" min="0">
                 </div>
               </div>
               <div class="d-flex align-items-center justify-content-between mt-3">
-                <small class="text-muted">Hypothèses internes simples</small>
-                <div class="fw-bold" id="roiTxt">Payback estimé : —</div>
+                <small class="text-muted" data-i18n="product.roi.hint">Hypothèses internes simples</small>
+                <div class="fw-bold" id="roiTxt" data-i18n="product.roi.result">Payback estimé : —</div>
               </div>
             </div>
           </div>
@@ -351,30 +355,30 @@ $alternatives = $alternativesStmt->fetchAll();
     <!-- FAQ -->
     <section class="py-5">
       <div class="container">
-        <h2 class="h4 mb-4">FAQ</h2>
+        <h2 class="h4 mb-4" data-i18n="product.faq">FAQ</h2>
         <div class="accordion" id="faq">
           <div class="accordion-item">
             <h2 class="accordion-header" id="q1">
-              <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#a1">Faut-il une formation ?</button>
+              <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#a1" data-i18n="product.faq1">Faut-il une formation ?</button>
             </h2>
             <div id="a1" class="accordion-collapse collapse show" data-bs-parent="#faq">
-              <div class="accordion-body">Oui, une prise en main opérateur est prévue. Durée typique : 1–2 h.</div>
+              <div class="accordion-body" data-i18n="product.faq1Answer">Oui, une prise en main opérateur est prévue. Durée typique : 1–2 h.</div>
             </div>
           </div>
           <div class="accordion-item">
             <h2 class="accordion-header" id="q2">
-              <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#a2">Hygiène et partage entre opérateurs ?</button>
+              <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#a2" data-i18n="product.faq2">Hygiène et partage entre opérateurs ?</button>
             </h2>
             <div id="a2" class="accordion-collapse collapse" data-bs-parent="#faq">
-              <div class="accordion-body">Harnais lavable et consommables remplaçables. Tailles S–L.</div>
+              <div class="accordion-body" data-i18n="product.faq2Answer">Harnais lavable et consommables remplaçables. Tailles S–L.</div>
             </div>
           </div>
           <div class="accordion-item">
             <h2 class="accordion-header" id="q3">
-              <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#a3">Maintenance ?</button>
+              <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#a3" data-i18n="product.faq3">Maintenance ?</button>
             </h2>
             <div id="a3" class="accordion-collapse collapse" data-bs-parent="#faq">
-              <div class="accordion-body">Contrôles périodiques simples. Batterie échangeable.</div>
+              <div class="accordion-body" data-i18n="product.faq3Answer">Contrôles périodiques simples. Batterie échangeable.</div>
             </div>
           </div>
         </div>
@@ -385,8 +389,8 @@ $alternatives = $alternativesStmt->fetchAll();
     <section class="py-5 bg-light border-top">
       <div class="container">
         <div class="d-flex align-items-center justify-content-between mb-4">
-          <h2 class="h4 mb-0">Alternatives proches</h2>
-          <a href="index.php#comparateur" class="link-primary">Comparer →</a>
+          <h2 class="h4 mb-0" data-i18n="product.alternatives">Alternatives proches</h2>
+          <a href="index.php#comparateur" class="link-primary" data-i18n="product.compare">Comparer →</a>
         </div>
         <div class="row g-4">
           <?php foreach($alternatives as $alt): ?>
@@ -404,7 +408,7 @@ $alternatives = $alternativesStmt->fetchAll();
                       <p class="small text-muted mb-2"><?= htmlspecialchars($alt['summary']) ?></p>
                       <div class="d-flex align-items-center justify-content-between">
                         <strong class="price"><?= price_html($alt['price']) ?></strong>
-                        <a href="detail.php?slug=<?= urlencode($alt['alt_slug'] ?? $product['slug']) ?>" class="btn btn-outline-primary btn-sm">Voir</a>
+                        <a href="detail.php?slug=<?= urlencode($alt['alt_slug'] ?? $product['slug']) ?>" class="btn btn-outline-primary btn-sm" data-i18n="product.view">Voir</a>
                       </div>
                     </div>
                   </div>
@@ -426,8 +430,8 @@ $alternatives = $alternativesStmt->fetchAll();
         <div class="price"><?= price_html($product['price'], $product['currency']) ?></div>
       </div>
       <div class="d-flex gap-2">
-        <a href="#demo" class="btn btn-light btn-sm">Démo</a>
-        <a href="#devis" class="btn btn-outline-light btn-sm">Devis</a>
+        <a href="#demo" class="btn btn-light btn-sm" data-i18n="product.stickyDemo">Démo</a>
+        <a href="#devis" class="btn btn-outline-light btn-sm" data-i18n="product.stickyQuote">Devis</a>
       </div>
     </div>
   </div>
@@ -440,42 +444,42 @@ $alternatives = $alternativesStmt->fetchAll();
           <div class="d-flex align-items-center mb-3">
             <img src="assets/img/logo.png" alt="Exoleton" width="136" height="50" class="me-2">
           </div>
-          <p class="text-white-50">Site d’exosquelettes et technologies d’assistance. Notre mission : rendre la mobilité augmentée accessible à tous.</p>
+          <p class="text-white-50" data-i18n="footer.mission">Site d’exosquelettes et technologies d’assistance. Notre mission : rendre la mobilité augmentée accessible à tous.</p>
         </div>
         <div class="col-6 col-md-2">
-          <h3 class="h6">Navigation</h3>
+          <h3 class="h6" data-i18n="footer.navigation">Navigation</h3>
           <ul class="list-unstyled">
-            <li><a class="footer-link" href="index.php">Accueil</a></li>
-            <li><a class="footer-link" href="index.php#produits">Produits</a></li>
-            <li><a class="footer-link" href="index.php#comparateur">Comparateur</a></li>
-            <li><a class="footer-link" href="index.php#guides">Guides</a></li>
+            <li><a class="footer-link" href="index.php" data-i18n="nav.home">Accueil</a></li>
+            <li><a class="footer-link" href="index.php#produits" data-i18n="nav.products">Produits</a></li>
+            <li><a class="footer-link" href="index.php#comparateur" data-i18n="nav.comparator">Comparateur</a></li>
+            <li><a class="footer-link" href="index.php#guides" data-i18n="nav.guides">Guides</a></li>
           </ul>
         </div>
         <div class="col-6 col-md-3">
-          <h3 class="h6">Ressources</h3>
+          <h3 class="h6" data-i18n="footer.resources">Ressources</h3>
           <ul class="list-unstyled">
-            <li><a class="footer-link" href="#">FAQ</a></li>
-            <li><a class="footer-link" href="#">Support</a></li>
-            <li><a class="footer-link" href="#">Mentions légales</a></li>
-            <li><a class="footer-link" href="#">Politique de confidentialité</a></li>
+            <li><a class="footer-link" href="#" data-i18n="footer.faq">FAQ</a></li>
+            <li><a class="footer-link" href="#" data-i18n="footer.support">Support</a></li>
+            <li><a class="footer-link" href="#" data-i18n="footer.legal">Mentions légales</a></li>
+            <li><a class="footer-link" href="#" data-i18n="footer.privacy">Politique de confidentialité</a></li>
             <li>
               <button type="button" class="footer-link btn btn-link p-0 text-start" data-bs-toggle="modal" data-bs-target="#cookieSettingsModal">
-                Gérer les cookies
+                <span data-i18n="footer.cookies">Gérer les cookies</span>
               </button>
             </li>
           </ul>
         </div>
         <div class="col-md-3">
-          <h3 class="h6">Newsletter</h3>
+          <h3 class="h6" data-i18n="footer.newsletter">Newsletter</h3>
           <form class="d-flex gap-2" action="#" method="post" onsubmit="return false;">
-            <input type="email" class="form-control" placeholder="Votre email" aria-label="Votre email">
-            <button class="btn btn-success">S’inscrire</button>
+            <input type="email" class="form-control" placeholder="Votre email" aria-label="Votre email" data-i18n-placeholder="footer.email">
+            <button class="btn btn-success" data-i18n="footer.subscribe">S’inscrire</button>
           </form>
         </div>
       </div>
       <hr class="border-secondary my-4">
       <div class="d-flex flex-column flex-md-row justify-content-between align-items-center pb-4">
-        <small class="text-white-50">© <span id="year"></span> Exoleton. Tous droits réservés.</small>
+        <small class="text-white-50" data-i18n="footer.rights" data-i18n-html="true">© <span id="year"></span> Exoleton. Tous droits réservés.</small>
         <div class="d-flex gap-3 mt-3 mt-md-0">
           <a class="footer-link" href="#" aria-label="Twitter">Twitter</a>
           <a class="footer-link" href="#" aria-label="LinkedIn">LinkedIn</a>
@@ -490,36 +494,36 @@ $alternatives = $alternativesStmt->fetchAll();
     <div class="modal-dialog modal-dialog-centered">
       <div class="modal-content">
         <div class="modal-header">
-          <h2 class="modal-title h5 mb-0" id="cookieSettingsTitle">Préférences de cookies</h2>
-          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fermer"></button>
+          <h2 class="modal-title h5 mb-0" id="cookieSettingsTitle" data-i18n="cookie.modalTitle">Préférences de cookies</h2>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fermer" data-i18n-aria-label="cookie.close"></button>
         </div>
         <div class="modal-body">
-          <p class="small text-muted">Modifiez ci-dessous vos préférences. Les cookies nécessaires sont toujours actifs afin de garantir la sécurité et le fonctionnement du site.</p>
+          <p class="small text-muted" data-i18n="cookie.modalIntro">Modifiez ci-dessous vos préférences. Les cookies nécessaires sont toujours actifs afin de garantir la sécurité et le fonctionnement du site.</p>
           <div class="form-check form-switch mb-3">
             <input class="form-check-input" type="checkbox" id="cookieNecessary" checked disabled>
             <label class="form-check-label" for="cookieNecessary">
-              Cookies nécessaires
-              <span class="d-block text-muted small">Indispensables pour la sécurité, l’accessibilité et la mémorisation de vos choix.</span>
+              <span data-i18n="cookie.necessary">Cookies nécessaires</span>
+              <span class="d-block text-muted small" data-i18n="cookie.necessaryDesc">Indispensables pour la sécurité, l’accessibilité et la mémorisation de vos choix.</span>
             </label>
           </div>
           <div class="form-check form-switch mb-3">
             <input class="form-check-input" type="checkbox" id="cookieAnalytics">
             <label class="form-check-label" for="cookieAnalytics">
-              Cookies de mesure d’audience
-              <span class="d-block text-muted small">Nous aident à comprendre comment le site est utilisé pour l’améliorer.</span>
+              <span data-i18n="cookie.analytics">Cookies de mesure d’audience</span>
+              <span class="d-block text-muted small" data-i18n="cookie.analyticsDesc">Nous aident à comprendre comment le site est utilisé pour l’améliorer.</span>
             </label>
           </div>
           <div class="form-check form-switch">
             <input class="form-check-input" type="checkbox" id="cookieMarketing">
             <label class="form-check-label" for="cookieMarketing">
-              Cookies marketing
-              <span class="d-block text-muted small">Permettent de personnaliser la communication et les offres.</span>
+              <span data-i18n="cookie.marketing">Cookies marketing</span>
+              <span class="d-block text-muted small" data-i18n="cookie.marketingDesc">Permettent de personnaliser la communication et les offres.</span>
             </label>
           </div>
         </div>
         <div class="modal-footer">
-          <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Annuler</button>
-          <button type="button" class="btn btn-primary" id="cookieSavePreferences">Enregistrer</button>
+          <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal" data-i18n="cookie.cancel">Annuler</button>
+          <button type="button" class="btn btn-primary" id="cookieSavePreferences" data-i18n="cookie.save">Enregistrer</button>
         </div>
       </div>
     </div>
@@ -548,6 +552,7 @@ $alternatives = $alternativesStmt->fetchAll();
   <!-- Scripts -->
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
   <script src="assets/js/main.js"></script>
+  <script src="assets/js/i18n.js"></script>
   <script>
     // Galerie
     document.querySelectorAll('.thumbs .thumb').forEach(function(el){

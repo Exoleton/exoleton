@@ -1,0 +1,193 @@
+{
+  "lang": {
+    "label": "Langue",
+    "fr": "Français (FR)",
+    "en": "Anglais (EN)",
+    "de": "Allemand (DE)",
+    "it": "Italien (IT)",
+    "es": "Espagnol (ES)",
+    "pt": "Portugais (PT)",
+    "nl": "Néerlandais (NL)",
+    "pl": "Polonais (PL)",
+    "jp": "Japonais (JP)",
+    "zh": "Chinois simplifié (ZH)",
+    "kr": "Coréen (KR)",
+    "ru": "Russe (RU)"
+  },
+  "meta": {
+    "title": "Exoleton – Site d’exosquelettes et technologies d’assistance",
+    "description": "Découvrez, comparez et accédez aux meilleures solutions d’exosquelettes et technologies d’assistance pour professionnels, collectivités et particuliers.",
+    "ogTitle": "Exoleton – La mobilité augmentée, accessible à tous",
+    "ogDescription": "Site de référence pour exosquelettes et assistances physiques."
+  },
+  "nav": {
+    "home": "Accueil",
+    "products": "Produits",
+    "industrial": "Industriel",
+    "medical": "Médical / Rééducation",
+    "consumer": "Particulier / Quotidien",
+    "care": "Collectivités / Soins",
+    "comparator": "Comparateur",
+    "guides": "Guides",
+    "search": "Recherche",
+    "cta": "Découvrir les solutions",
+    "demo": "Demander une démo"
+  },
+  "hero": {
+    "title": "La mobilité augmentée, accessible à tous.",
+    "lead": "Exoleton est le site de référence pour les exosquelettes et technologies d’assistance. Découvrez, comparez et accédez aux solutions adaptées à vos besoins professionnels et personnels.",
+    "primary": "Explorer les produits",
+    "secondary": "Lire les guides"
+  },
+  "advantages": {
+    "title1": "Large choix de modèles",
+    "desc1": "Une sélection couvrant les usages industriels, médicaux et du quotidien.",
+    "title2": "Partenaires de confiance",
+    "desc2": "Fabricants reconnus, produits certifiés et processus d’achat encadré.",
+    "title3": "Conseils d’experts",
+    "desc3": "Guides, cas d’usage et comparatifs pour choisir en toute sérénité."
+  },
+  "selection": {
+    "title": "Sélection du moment",
+    "link": "Comparer les modèles →",
+    "details": "Voir les détails"
+  },
+  "comparator": {
+    "title": "Comparer en un coup d’œil",
+    "desc": "Poids, autonomie, type d’assistance, charge supportée, certifications… Notre comparateur vous aide à sélectionner le bon modèle pour votre activité.",
+    "cta": "Accéder au comparateur",
+    "table": {
+      "model": "Modèle",
+      "type": "Type",
+      "weight": "Poids",
+      "autonomy": "Autonomie",
+      "charge": "Charge"
+    },
+    "note": "*Données indicatives, variables selon configuration."
+  },
+  "guides": {
+    "title": "Guides & cas d’usage",
+    "link": "Voir tous les articles →"
+  },
+  "cta": {
+    "title": "Un besoin précis ? Parlons-en.",
+    "desc": "Nos équipes vous orientent vers les bons modèles et vous accompagnent dans votre projet.",
+    "button": "Être recontacté"
+  },
+  "footer": {
+    "mission": "Site d’exosquelettes et technologies d’assistance. Notre mission : rendre la mobilité augmentée accessible à tous.",
+    "navigation": "Navigation",
+    "resources": "Ressources",
+    "faq": "FAQ",
+    "support": "Support",
+    "legal": "Mentions légales",
+    "privacy": "Politique de confidentialité",
+    "cookies": "Gérer les cookies",
+    "newsletter": "Newsletter",
+    "email": "Votre email",
+    "subscribe": "S’inscrire",
+    "rights": "© <span id=\"year\"></span> Exoleton. Tous droits réservés."
+  },
+  "cookie": {
+    "bannerTitle": "Nous utilisons des cookies",
+    "bannerText": "Certains cookies sont essentiels au bon fonctionnement du site. Nous utilisons également des cookies optionnels pour mesurer l’audience et améliorer votre expérience.",
+    "accept": "Tout accepter",
+    "reject": "Tout refuser",
+    "customize": "Personnaliser",
+    "modalTitle": "Préférences de cookies",
+    "close": "Fermer",
+    "modalIntro": "Modifiez ci-dessous vos préférences. Les cookies nécessaires sont toujours actifs afin de garantir la sécurité et le fonctionnement du site.",
+    "necessary": "Cookies nécessaires",
+    "necessaryDesc": "Indispensables pour la sécurité, l’accessibilité et la mémorisation de vos choix.",
+    "analytics": "Cookies de mesure d’audience",
+    "analyticsDesc": "Nous aident à comprendre comment le site est utilisé pour l’améliorer.",
+    "marketing": "Cookies marketing",
+    "marketingDesc": "Permettent de personnaliser la communication et les offres.",
+    "cancel": "Annuler",
+    "save": "Enregistrer"
+  },
+  "product": {
+    "metaTitle": "Fiche produit – Exoleton",
+    "metaDescription": "Détails et spécifications du produit.",
+    "ogTitle": "Fiche produit",
+    "ogDescription": "Découvrir la fiche produit Exoleton.",
+    "about": "À propos",
+    "priceLabel": "Tarif indicatif",
+    "demoButton": "Demande de démo",
+    "quoteButton": "Devis",
+    "bullet1": "• Essai sur site possible (selon zone)",
+    "bullet2": "• Formation opérateur incluse",
+    "bullet3": "• Financements et aides possibles",
+    "useCases": "Cas d’usage",
+    "specs": "Caractéristiques techniques",
+    "specsNote": "*Données indicatives, variables selon configuration.",
+    "downloads": "Téléchargements",
+    "downloadCta": "PDF",
+    "downloadHelp": "Besoin d’un document spécifique (fiche technique, essais, certificats) ? <a href=\"#contact\" class=\"alert-link\">Contacte-nous</a>.",
+    "demoTitle": "Demander une démo",
+    "form": {
+      "name": "Nom",
+      "email": "Email",
+      "sector": "Secteur",
+      "select": "Sélectionner",
+      "logistics": "Logistique",
+      "industry": "Industrie",
+      "construction": "BTP",
+      "health": "Santé",
+      "other": "Autre",
+      "zip": "Code postal",
+      "need": "Votre besoin",
+      "needPlaceholder": "Contexte, postes concernés, objectifs…",
+      "send": "Envoyer la demande"
+    },
+    "quoteTitle": "Devis rapide",
+    "quote": {
+      "quantity": "Quantité",
+      "options": "Options",
+      "optionNone": "Aucune",
+      "optionBattery": "Batterie supplémentaire (+450€)",
+      "optionHarness": "Harnais XL (+190€)",
+      "estimate": "Estimation",
+      "receive": "Recevoir le devis"
+    },
+    "roi": {
+      "title": "ROI rapide (indicatif)",
+      "operators": "Opérateurs",
+      "at": "AT/an évités",
+      "lifts": "Levages/jour",
+      "hint": "Hypothèses internes simples",
+      "result": "Payback estimé : —"
+    },
+    "faq": "FAQ",
+    "faq1": "Faut-il une formation ?",
+    "faq1Answer": "Oui, une prise en main opérateur est prévue. Durée typique : 1–2 h.",
+    "faq2": "Hygiène et partage entre opérateurs ?",
+    "faq2Answer": "Harnais lavable et consommables remplaçables. Tailles S–L.",
+    "faq3": "Maintenance ?",
+    "faq3Answer": "Contrôles périodiques simples. Batterie échangeable.",
+    "alternatives": "Alternatives proches",
+    "compare": "Comparer →",
+    "view": "Voir",
+    "stickyDemo": "Démo",
+    "stickyQuote": "Devis"
+  },
+  "search": {
+    "metaTitle": "Résultats de recherche – Exoleton",
+    "metaDescription": "Résultats de recherche pour les exosquelettes et technologies d’assistance sur Exoleton.",
+    "ogDescription": "Découvrez les produits, guides et ressources correspondant à votre recherche.",
+    "title": "Résultats de recherche",
+    "heading": "Ce que nous avons trouvé",
+    "subtitle": "Affinez votre recherche, parcourez les modèles et guides correspondants ou contactez-nous pour être accompagné.",
+    "label": "Rechercher",
+    "placeholder": "Exosquelette industriel, aide à la marche…",
+    "rehab": "Rééducation",
+    "budget": "Budget & financement",
+    "results": "Résultats",
+    "sort": "Trier par",
+    "sortRelevance": "Pertinence",
+    "sortLow": "Prix croissant",
+    "sortHigh": "Prix décroissant",
+    "noResults": "<strong>Aucun résultat</strong> pour votre recherche. Essayez d’autres mots-clés ou contactez nos équipes pour un accompagnement personnalisé.",
+    "contact": "Être recontacté"
+  }
+}
