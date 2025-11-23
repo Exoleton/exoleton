@@ -1,7 +1,7 @@
 <?php
 // Connexion PDO partagée
 $host = 'localhost';
-$db   = 'exaleton';
+$db   = 'exoleton';
 $user = 'root';
 $pass = 'KQchRF5NEjd7';
 $charset = 'utf8mb4';
