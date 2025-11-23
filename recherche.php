@@ -1,3 +1,56 @@
+<?php
+require __DIR__ . '/db.php';
+
+function price_html($p, $cur = 'EUR')
+{
+  if (!$p || $p <= 0) return 'Sur demande';
+  return number_format($p, 0, ',', ' ') . ' ' . ($cur === 'EUR' ? '€' : $cur);
+}
+
+$query = isset($_GET['q']) ? trim($_GET['q']) : '';
+$sanitizedQuery = htmlspecialchars($query, ENT_QUOTES, 'UTF-8');
+$like = '%' . $query . '%';
+
+if ($query === '') {
+  $products = $pdo->query("SELECT slug, name, tag, category, summary, price, currency, main_image, tags FROM products ORDER BY name")->fetchAll();
+  $guides = $pdo->query("SELECT title, summary, image, category, tags FROM guides ORDER BY published_at DESC, id DESC")->fetchAll();
+} else {
+  $prodStmt = $pdo->prepare("SELECT slug, name, tag, category, summary, price, currency, main_image, tags FROM products WHERE name LIKE :q OR summary LIKE :q OR tags LIKE :q ORDER BY name");
+  $prodStmt->execute(['q' => $like]);
+  $products = $prodStmt->fetchAll();
+
+  $guideStmt = $pdo->prepare("SELECT title, summary, image, category, tags FROM guides WHERE title LIKE :q OR summary LIKE :q OR tags LIKE :q ORDER BY published_at DESC, id DESC");
+  $guideStmt->execute(['q' => $like]);
+  $guides = $guideStmt->fetchAll();
+}
+
+$results = [];
+foreach ($products as $product) {
+  $results[] = [
+    'title' => $product['name'],
+    'category' => $product['tag'] ?: $product['category'],
+    'summary' => $product['summary'],
+    'price' => $product['price'],
+    'currency' => $product['currency'],
+    'image' => $product['main_image'],
+    'tags' => array_filter(array_map('trim', explode(',', (string)$product['tags']))),
+    'link' => 'detail.php?slug=' . urlencode($product['slug']),
+  ];
+}
+
+foreach ($guides as $guide) {
+  $results[] = [
+    'title' => $guide['title'],
+    'category' => $guide['category'] ?: 'Guide',
+    'summary' => $guide['summary'],
+    'price' => null,
+    'currency' => null,
+    'image' => $guide['image'],
+    'tags' => array_filter(array_map('trim', explode(',', (string)$guide['tags']))),
+    'link' => '#',
+  ];
+}
+?>
 <!doctype html>
 <html lang="fr">
 <head>
@@ -26,53 +79,6 @@
   <link rel="stylesheet" href="assets/css/main.css">
 </head>
 <body>
-<?php
-  $query = isset($_GET['q']) ? trim($_GET['q']) : '';
-  $sanitizedQuery = htmlspecialchars($query, ENT_QUOTES, 'UTF-8');
-
-  $catalog = [
-    [
-      'title' => 'ExoLift Pro',
-      'category' => 'Industriel',
-      'summary' => 'Exosquelette actif pour le levage intensif, assistance jusqu’à 35 kg.',
-      'price' => '4 900 €',
-      'image' => 'assets/img/produit-1.jpg',
-      'tags' => ['levage', 'industriel', 'batterie 8 h']
-    ],
-    [
-      'title' => 'Atalante X Rééducation',
-      'category' => 'Médical',
-      'summary' => 'Solution de marche assistée pour centres de rééducation et hôpitaux.',
-      'price' => 'Sur demande',
-      'image' => 'assets/img/produit-2.jpg',
-      'tags' => ['rééducation', 'marche', 'usage clinique']
-    ],
-    [
-      'title' => 'AssistArm Confort',
-      'category' => 'Particulier',
-      'summary' => 'Soulage les efforts répétés du haut du corps pour le quotidien.',
-      'price' => '2 750 €',
-      'image' => 'assets/img/produit-3.jpg',
-      'tags' => ['quotidien', 'léger', 'passif']
-    ],
-    [
-      'title' => 'Guide pratique : financer son exosquelette',
-      'category' => 'Guide',
-      'summary' => 'Panorama des aides, subventions et démarches pour obtenir un financement.',
-      'price' => null,
-      'image' => 'assets/img/hero-exosquelette.jpg',
-      'tags' => ['financement', 'guide', 'budget']
-    ]
-  ];
-
-  $filtered = array_filter($catalog, function ($item) use ($query) {
-    if ($query === '') {
-      return true;
-    }
-    $haystack = strtolower($item['title'] . ' ' . $item['summary'] . ' ' . implode(' ', $item['tags']));
-    return str_contains($haystack, strtolower($query));
-  });
-?>
 
   <header class="navbar navbar-expand-lg navbar-light bg-white fixed-top shadow-sm">
     <div class="container">
@@ -130,7 +136,7 @@
         <div class="d-flex align-items-center justify-content-between flex-wrap gap-3 mb-4">
           <div>
             <p class="text-muted mb-1 small text-uppercase">Résultats</p>
-            <h2 class="h4 mb-0"><?php echo count($filtered); ?> élément<?php echo count($filtered) > 1 ? 's' : ''; ?> trouvé<?php echo count($filtered) > 1 ? 's' : ''; ?></h2>
+            <h2 class="h4 mb-0"><?php echo count($results); ?> élément<?php echo count($results) > 1 ? 's' : ''; ?> trouvé<?php echo count($results) > 1 ? 's' : ''; ?></h2>
           </div>
           <div class="d-flex align-items-center gap-2">
             <span class="text-muted small">Trier par</span>
@@ -142,7 +148,7 @@
           </div>
         </div>
 
-        <?php if (empty($filtered)): ?>
+        <?php if (empty($results)): ?>
           <div class="alert alert-info d-flex align-items-center" role="status">
             <div class="flex-shrink-0 me-3"><span class="bi bi-info-circle"></span></div>
             <div>
@@ -151,7 +157,7 @@
           </div>
         <?php else: ?>
           <div class="row g-4">
-            <?php foreach ($filtered as $item): ?>
+            <?php foreach ($results as $item): ?>
               <div class="col-md-6 col-lg-4">
                 <article class="card h-100 product-card">
                   <?php if (!empty($item['image'])): ?>
@@ -162,7 +168,7 @@
                       <span class="badge <?php echo $item['category'] === 'Industriel' ? 'bg-success' : ($item['category'] === 'Médical' ? 'bg-info' : 'bg-secondary'); ?>">
                         <?php echo htmlspecialchars($item['category'], ENT_QUOTES, 'UTF-8'); ?>
                       </span>
-                      <?php if ($item['price']): ?><span class="price fw-semibold"><?php echo htmlspecialchars($item['price'], ENT_QUOTES, 'UTF-8'); ?></span><?php endif; ?>
+                      <?php if ($item['price'] !== null): ?><span class="price fw-semibold"><?php echo htmlspecialchars(price_html((int)$item['price'], $item['currency'] ?? 'EUR'), ENT_QUOTES, 'UTF-8'); ?></span><?php endif; ?>
                     </div>
                     <h3 class="h5 card-title mb-2"><?php echo htmlspecialchars($item['title'], ENT_QUOTES, 'UTF-8'); ?></h3>
                     <p class="text-muted small mb-3 flex-grow-1"><?php echo htmlspecialchars($item['summary'], ENT_QUOTES, 'UTF-8'); ?></p>
@@ -172,7 +178,7 @@
                       <?php endforeach; ?>
                     </div>
                     <div class="d-flex align-items-center justify-content-between mt-auto">
-                      <a href="#" class="btn btn-outline-primary btn-sm">Voir les détails</a>
+                      <a href="<?php echo htmlspecialchars($item['link'], ENT_QUOTES, 'UTF-8'); ?>" class="btn btn-outline-primary btn-sm">Voir les détails</a>
                       <a href="index.php#cta" class="btn btn-link text-decoration-none">Être recontacté</a>
                     </div>
                   </div>

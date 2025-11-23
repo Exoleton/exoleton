@@ -1,3 +1,18 @@
+<?php
+require __DIR__ . '/db.php';
+
+function price_html($p, $cur = 'EUR')
+{
+  if (!$p || $p <= 0) return 'Sur demande';
+  return number_format($p, 0, ',', ' ') . ' ' . ($cur === 'EUR' ? '€' : $cur);
+}
+
+$productsStmt = $pdo->query("SELECT id, slug, name, category, tag, price, currency, summary, main_image, type, weight, autonomy, charge FROM products ORDER BY featured_order, name");
+$products = $productsStmt->fetchAll();
+
+$guidesStmt = $pdo->query("SELECT title, summary, image FROM guides ORDER BY published_at DESC, id DESC LIMIT 3");
+$guides = $guidesStmt->fetchAll();
+?>
 <!doctype html>
 <html lang="fr">
 <head>
@@ -122,53 +137,24 @@
       </div>
 
       <div class="row g-4">
-        <!-- Carte produit 1 -->
-        <div class="col-md-4">
-          <article class="card product-card h-100">
-            <img src="assets/img/produit-1.jpg" class="card-img-top" alt="ExoLift – exosquelette industriel">
-            <div class="card-body">
-              <span class="badge bg-success mb-2">Industriel</span>
-              <h3 class="h5 card-title mb-1">ExoLift</h3>
-              <p class="text-muted small mb-3">Assistance au levage jusqu’à 30 kg · Batterie échangeable</p>
-              <div class="d-flex align-items-center justify-content-between">
-                <strong class="price">4 500 €</strong>
-                <a href="detail.php" class="btn btn-outline-primary btn-sm">Voir les détails</a>
+        <?php foreach ($products as $product): ?>
+          <div class="col-md-4">
+            <article class="card product-card h-100">
+              <?php if (!empty($product['main_image'])): ?>
+                <img src="<?= htmlspecialchars($product['main_image']) ?>" class="card-img-top" alt="<?= htmlspecialchars($product['name']) ?>">
+              <?php endif; ?>
+              <div class="card-body">
+                <span class="badge bg-<?= $product['tag']==='Industriel'?'success':($product['tag']==='Médical'?'info':'secondary') ?> mb-2"><?= htmlspecialchars($product['tag']) ?></span>
+                <h3 class="h5 card-title mb-1"><?= htmlspecialchars($product['name']) ?></h3>
+                <p class="text-muted small mb-3"><?= htmlspecialchars($product['summary']) ?></p>
+                <div class="d-flex align-items-center justify-content-between">
+                  <strong class="price"><?= price_html((int)$product['price'], $product['currency']) ?></strong>
+                  <a href="detail.php?slug=<?= urlencode($product['slug']) ?>" class="btn btn-outline-primary btn-sm">Voir les détails</a>
+                </div>
               </div>
-            </div>
-          </article>
-        </div>
-
-        <!-- Carte produit 2 -->
-        <div class="col-md-4">
-          <article class="card product-card h-100">
-            <img src="assets/img/produit-2.jpg" class="card-img-top" alt="Atalante X – rééducation">
-            <div class="card-body">
-              <span class="badge bg-info mb-2">Médical</span>
-              <h3 class="h5 card-title mb-1">Atalante X</h3>
-              <p class="text-muted small mb-3">Rééducation de la marche · Usage en établissement</p>
-              <div class="d-flex align-items-center justify-content-between">
-                <strong class="price">Sur demande</strong>
-                <a href="#" class="btn btn-outline-primary btn-sm">Voir les détails</a>
-              </div>
-            </div>
-          </article>
-        </div>
-
-        <!-- Carte produit 3 -->
-        <div class="col-md-4">
-          <article class="card product-card h-100">
-            <img src="assets/img/produit-3.jpg" class="card-img-top" alt="AssistArm – assistance quotidienne">
-            <div class="card-body">
-              <span class="badge bg-secondary mb-2">Particulier</span>
-              <h3 class="h5 card-title mb-1">AssistArm</h3>
-              <p class="text-muted small mb-3">Soulagement des efforts répétés · Ultra-léger</p>
-              <div class="d-flex align-items-center justify-content-between">
-                <strong class="price">2 800 €</strong>
-                <a href="#" class="btn btn-outline-primary btn-sm">Voir les détails</a>
-              </div>
-            </div>
-          </article>
-        </div>
+            </article>
+          </div>
+        <?php endforeach; ?>
       </div>
 
     </div>
@@ -196,27 +182,15 @@
                 </tr>
               </thead>
               <tbody>
-                <tr>
-                  <td>ExoLift</td>
-                  <td>Actif</td>
-                  <td>7,8 kg</td>
-                  <td>6 h</td>
-                  <td>30 kg</td>
-                </tr>
-                <tr>
-                  <td>Atalante X</td>
-                  <td>Actif</td>
-                  <td>≈30 kg</td>
-                  <td>—</td>
-                  <td>—</td>
-                </tr>
-                <tr>
-                  <td>AssistArm</td>
-                  <td>Passif</td>
-                  <td>2,1 kg</td>
-                  <td>∞</td>
-                  <td>—</td>
-                </tr>
+                <?php foreach ($products as $product): ?>
+                  <tr>
+                    <td><?= htmlspecialchars($product['name']) ?></td>
+                    <td><?= htmlspecialchars($product['type'] ?: '—') ?></td>
+                    <td><?= htmlspecialchars($product['weight'] ?: '—') ?></td>
+                    <td><?= htmlspecialchars($product['autonomy'] ?: '—') ?></td>
+                    <td><?= htmlspecialchars($product['charge'] ?: '—') ?></td>
+                  </tr>
+                <?php endforeach; ?>
               </tbody>
             </table>
           </div>
@@ -234,33 +208,20 @@
         <a href="#" class="link-primary">Voir tous les articles →</a>
       </div>
       <div class="row g-4">
-        <div class="col-md-4">
-          <article class="card h-100 shadow-sm">
-            <div class="card-body">
-              <h3 class="h5">Choisir un exosquelette pour la logistique</h3>
-              <p class="text-muted">Critères essentiels, ROI, prévention des TMS, sécurité et formation.</p>
-              <a class="stretched-link" href="#"></a>
-            </div>
-          </article>
-        </div>
-        <div class="col-md-4">
-          <article class="card h-100 shadow-sm">
-            <div class="card-body">
-              <h3 class="h5">Aide à la marche : quelles solutions ?</h3>
-              <p class="text-muted">Panorama des dispositifs disponibles et indications d’usage.</p>
-              <a class="stretched-link" href="#"></a>
-            </div>
-          </article>
-        </div>
-        <div class="col-md-4">
-          <article class="card h-100 shadow-sm">
-            <div class="card-body">
-              <h3 class="h5">Financements & subventions</h3>
-              <p class="text-muted">Pistes pour entreprises, hôpitaux, collectivités et particuliers.</p>
-              <a class="stretched-link" href="#"></a>
-            </div>
-          </article>
-        </div>
+        <?php foreach ($guides as $guide): ?>
+          <div class="col-md-4">
+            <article class="card h-100 shadow-sm">
+              <?php if (!empty($guide['image'])): ?>
+                <img src="<?= htmlspecialchars($guide['image']) ?>" class="card-img-top" alt="<?= htmlspecialchars($guide['title']) ?>">
+              <?php endif; ?>
+              <div class="card-body">
+                <h3 class="h5"><?= htmlspecialchars($guide['title']) ?></h3>
+                <p class="text-muted"><?= htmlspecialchars($guide['summary']) ?></p>
+                <a class="stretched-link" href="#"></a>
+              </div>
+            </article>
+          </div>
+        <?php endforeach; ?>
       </div>
     </div>
   </section>

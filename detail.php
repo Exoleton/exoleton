@@ -2,63 +2,44 @@
 // ===============================================
 // detail.php — Page détail produit Exoleton
 // ===============================================
+require __DIR__ . '/db.php';
 
-// Données produit (tu peux les charger depuis une base plus tard)
-$product = [
-  'slug'        => 'exolift',
-  'name'        => 'ExoLift',
-  'category'    => 'Exosquelette industriel',
-  'tag'         => 'Industriel',
-  'price'       => 4500, // 0 => "Sur demande"
-  'currency'    => 'EUR',
-  'summary'     => 'Assistance au levage jusqu’à 30 kg · Batterie échangeable',
-  'baseline'    => 'Réduit la contrainte lombaire et améliore la cadence sans fatigue.',
-  'bullets'     => ['30 kg assistés', '7,8 kg', 'Autonomie 6 h'],
-  'specs'       => [
-    'Type' => 'Actif (électrique)',
-    'Zones assistées' => 'Dos / Membres supérieurs',
-    'Charge assistée' => 'Jusqu’à 30 kg',
-    'Poids' => '7,8 kg',
-    'Autonomie' => '≈ 6 h (batterie échangeable)',
-    'Niveaux d’assistance' => '3',
-    'Taille opérateur' => '160–195 cm (S–L)',
-    'Niveau sonore' => '≤ 45 dB',
-    'Indice de protection' => 'IP54',
-    'Conformité' => 'CE, Directive Machines',
-    'Entretien' => 'Module batterie remplaçable, harnais lavable',
-    'Garantie' => '24 mois',
-  ],
-  'images' => [
-    'hero' => 'assets/img/produits/exolift-1.jpg',
-    'gallery' => [
-      'assets/img/produits/exolift-1.jpg',
-      'assets/img/produits/exolift-2.jpg',
-      'assets/img/produits/exolift-3.jpg'
-    ]
-  ],
-  'downloads' => [
-    ['label' => 'Fiche produit (PDF)', 'href' => 'assets/docs/exolift-fiche.pdf'],
-    ['label' => 'Manuel d’utilisation (PDF)', 'href' => 'assets/docs/exolift-manuel.pdf'],
-    ['label' => 'Fiche sécurité (PDF)', 'href' => 'assets/docs/exolift-securite.pdf']
-  ],
-  'use_cases' => [
-    ['titre' => 'Logistique', 'kpi' => '–28% TMS dos', 'texte' => 'Aide au soulèvement et à la manutention répétée.'],
-    ['titre' => 'Industrie', 'kpi' => '+18% cadence', 'texte' => 'Maintien de la performance en fin de poste.'],
-    ['titre' => 'BTP', 'kpi' => '–35% fatigue perçue', 'texte' => 'Postures contraignantes mieux supportées.'],
-  ],
-  'alternatives' => [
-    ['img' => 'assets/img/produits/assistarm.jpg', 'tag' => 'Particulier', 'name' => 'AssistArm', 'summary' => 'Passif, ultra-léger', 'price' => 2800],
-    ['img' => 'assets/img/produits/atalante.jpg', 'tag' => 'Médical', 'name' => 'Atalante X', 'summary' => 'Rééducation marche', 'price' => 0],
-  ],
-  'brand' => 'Exoleton',
-  'availability' => 'https://schema.org/InStock'
-];
+$slug = isset($_GET['slug']) ? trim($_GET['slug']) : 'exolift';
 
-// Helpers
+$productStmt = $pdo->prepare('SELECT * FROM products WHERE slug = :slug LIMIT 1');
+$productStmt->execute(['slug' => $slug]);
+$product = $productStmt->fetch();
+
+if (!$product) {
+  http_response_code(404);
+  echo '<h1>Produit introuvable</h1>';
+  exit;
+}
+
 function price_html($p, $cur = 'EUR'){
   if(!$p || $p <= 0) return 'Sur demande';
   return number_format($p, 0, ',', ' ') . ' ' . ($cur === 'EUR' ? '€' : $cur);
 }
+
+$imagesStmt = $pdo->prepare('SELECT url FROM product_images WHERE product_id = :pid ORDER BY sort_order');
+$imagesStmt->execute(['pid' => $product['id']]);
+$galleryImages = $imagesStmt->fetchAll(PDO::FETCH_COLUMN) ?: [$product['hero_image']];
+
+$downloadsStmt = $pdo->prepare('SELECT label, href FROM product_downloads WHERE product_id = :pid ORDER BY sort_order');
+$downloadsStmt->execute(['pid' => $product['id']]);
+$downloads = $downloadsStmt->fetchAll();
+
+$useCasesStmt = $pdo->prepare('SELECT title, kpi, description FROM product_use_cases WHERE product_id = :pid ORDER BY sort_order');
+$useCasesStmt->execute(['pid' => $product['id']]);
+$use_cases = $useCasesStmt->fetchAll();
+
+$specsStmt = $pdo->prepare('SELECT label, value FROM product_specs WHERE product_id = :pid ORDER BY sort_order');
+$specsStmt->execute(['pid' => $product['id']]);
+$specs = $specsStmt->fetchAll();
+
+$alternativesStmt = $pdo->prepare('SELECT alt_name, alt_slug, tag, summary, price, image FROM product_alternatives WHERE product_id = :pid ORDER BY sort_order');
+$alternativesStmt->execute(['pid' => $product['id']]);
+$alternatives = $alternativesStmt->fetchAll();
 ?>
 <!doctype html>
 <html lang="fr">
@@ -80,7 +61,7 @@ function price_html($p, $cur = 'EUR'){
   <!-- Open Graph -->
   <meta property="og:title" content="<?= htmlspecialchars($product['name']) ?> – <?= htmlspecialchars($product['category']) ?>">
   <meta property="og:description" content="<?= htmlspecialchars($product['baseline']) ?>">
-  <meta property="og:image" content="<?= htmlspecialchars($product['images']['hero']) ?>">
+  <meta property="og:image" content="<?= htmlspecialchars($product['hero_image']) ?>">
   <meta property="og:type" content="product">
 
   <!-- Bootstrap -->
@@ -149,19 +130,23 @@ function price_html($p, $cur = 'EUR'){
 
     <!-- HERO produit 
     <section class="product-hero mb-4">
-      <img class="hero" src="<?= htmlspecialchars($product['images']['hero']) ?>" alt="<?= htmlspecialchars($product['name']) ?>">
+      <img class="hero" src="<?= htmlspecialchars($product['hero_image']) ?>" alt="<?= htmlspecialchars($product['name']) ?>">
       <div class="overlay"></div>
       <div class="container position-relative">
         <div class="row align-items-end" style="min-height: 320px;">
           <div class="col-lg-7 py-4">
-            <span class="badge bg-success mb-2"><?= htmlspecialchars($product['tag']) ?></span>
+            <?php $badgeClass = $product['tag']==='Industriel'?'bg-success':($product['tag']==='Médical'?'bg-info':'bg-secondary'); ?>
+            <span class="badge <?= $badgeClass ?> mb-2"><?= htmlspecialchars($product['tag']) ?></span>
             <h1 class="display-6 fw-bold mb-2"><?= htmlspecialchars($product['name']) ?></h1>
             <p class="lead mb-3"><?= htmlspecialchars($product['baseline']) ?></p>
-            <ul class="list-inline mb-4">
-              <?php foreach($product['bullets'] as $b): ?>
-                <li class="list-inline-item me-3"><span class="icon-badge me-2">✓</span><?= htmlspecialchars($b) ?></li>
-              <?php endforeach; ?>
-            </ul>
+            <?php $bullets = array_filter(array_map('trim', explode('|', (string)$product['bullets']))); ?>
+            <?php if (!empty($bullets)): ?>
+              <ul class="list-inline mb-4">
+                <?php foreach($bullets as $b): ?>
+                  <li class="list-inline-item me-3"><span class="icon-badge me-2">✓</span><?= htmlspecialchars($b) ?></li>
+                <?php endforeach; ?>
+              </ul>
+            <?php endif; ?>
             <div class="d-flex flex-wrap gap-2">
               <a href="#demo" class="btn btn-primary btn-lg">Demander une démo</a>
               <a href="#devis" class="btn btn-outline-light btn-lg">Devis rapide</a>
@@ -177,10 +162,10 @@ function price_html($p, $cur = 'EUR'){
       <div class="row g-4">
         <div class="col-lg-6">
           <div class="ratio ratio-4x3 mb-3">
-            <img id="mainImage" src="<?= htmlspecialchars($product['images']['gallery'][0]) ?>" alt="Vue principale" class="w-100 h-100 rounded-3" style="object-fit:cover">
+            <img id="mainImage" src="<?= htmlspecialchars($galleryImages[0] ?? $product['hero_image']) ?>" alt="Vue principale" class="w-100 h-100 rounded-3" style="object-fit:cover">
           </div>
           <div class="row g-2 thumbs" role="listbox" aria-label="Galerie produit">
-            <?php foreach($product['images']['gallery'] as $idx => $g): ?>
+            <?php foreach($galleryImages as $idx => $g): ?>
               <div class="col-4">
                 <img src="<?= htmlspecialchars($g) ?>" alt="Miniature <?= $idx+1 ?>" class="thumb rounded-3 <?= $idx===0?'active':'' ?>" data-full="<?= htmlspecialchars($g) ?>">
               </div>
@@ -219,18 +204,18 @@ function price_html($p, $cur = 'EUR'){
       <div class="container">
         <h2 class="h4 mb-4">Cas d’usage</h2>
         <div class="row g-4">
-          <?php foreach($product['use_cases'] as $uc): ?>
-            <div class="col-md-4">
-              <div class="card h-100 shadow-sm">
-                <div class="card-body">
-                  <div class="d-flex align-items-center justify-content-between">
-                    <h3 class="h6 mb-1"><?= htmlspecialchars($uc['titre']) ?></h3>
-                    <span class="badge bg-primary"><?= htmlspecialchars($uc['kpi']) ?></span>
-                  </div>
-                  <p class="text-muted mb-0"><?= htmlspecialchars($uc['texte']) ?></p>
-                </div>
-              </div>
-            </div>
+                  <?php foreach($use_cases as $uc): ?>
+                    <div class="col-md-4">
+                      <div class="card h-100 shadow-sm">
+                        <div class="card-body">
+                          <div class="d-flex align-items-center justify-content-between">
+                            <h3 class="h6 mb-1"><?= htmlspecialchars($uc['title']) ?></h3>
+                            <span class="badge bg-primary"><?= htmlspecialchars($uc['kpi']) ?></span>
+                          </div>
+                          <p class="text-muted mb-0"><?= htmlspecialchars($uc['description']) ?></p>
+                        </div>
+                      </div>
+                    </div>
           <?php endforeach; ?>
         </div>
       </div>
@@ -245,10 +230,10 @@ function price_html($p, $cur = 'EUR'){
             <div class="table-responsive rounded-3 shadow-sm bg-white">
               <table class="table align-middle mb-0 specs">
                 <tbody>
-                  <?php foreach($product['specs'] as $k=>$v): ?>
+                  <?php foreach($specs as $spec): ?>
                     <tr>
-                      <th class="bg-light"><?= htmlspecialchars($k) ?></th>
-                      <td><?= htmlspecialchars($v) ?></td>
+                      <th class="bg-light"><?= htmlspecialchars($spec['label']) ?></th>
+                      <td><?= htmlspecialchars($spec['value']) ?></td>
                     </tr>
                   <?php endforeach; ?>
                 </tbody>
@@ -259,7 +244,7 @@ function price_html($p, $cur = 'EUR'){
           <div class="col-lg-5">
             <h2 class="h4 mb-3">Téléchargements</h2>
             <ul class="list-group">
-              <?php foreach($product['downloads'] as $d): ?>
+              <?php foreach($downloads as $d): ?>
                 <li class="list-group-item d-flex align-items-center justify-content-between">
                   <span><?= htmlspecialchars($d['label']) ?></span>
                   <a class="btn btn-outline-secondary btn-sm" href="<?= htmlspecialchars($d['href']) ?>" target="_blank" rel="noopener">PDF</a>
@@ -404,21 +389,22 @@ function price_html($p, $cur = 'EUR'){
           <a href="index.php#comparateur" class="link-primary">Comparer →</a>
         </div>
         <div class="row g-4">
-          <?php foreach($product['alternatives'] as $alt): ?>
+          <?php foreach($alternatives as $alt): ?>
             <div class="col-md-6">
               <article class="card h-100">
                 <div class="row g-0 h-100">
                   <div class="col-4">
-                    <img src="<?= htmlspecialchars($alt['img']) ?>" alt="<?= htmlspecialchars($alt['name']) ?>" class="w-100 h-100" style="object-fit:cover">
+                    <img src="<?= htmlspecialchars($alt['image']) ?>" alt="<?= htmlspecialchars($alt['alt_name']) ?>" class="w-100 h-100" style="object-fit:cover">
                   </div>
                   <div class="col-8">
                     <div class="card-body">
-                      <span class="badge bg-secondary mb-2"><?= htmlspecialchars($alt['tag']) ?></span>
-                      <h3 class="h6 mb-1"><?= htmlspecialchars($alt['name']) ?></h3>
+                      <?php $altBadge = $alt['tag']==='Industriel'?'bg-success':($alt['tag']==='Médical'?'bg-info':'bg-secondary'); ?>
+                      <span class="badge <?= $altBadge ?> mb-2"><?= htmlspecialchars($alt['tag']) ?></span>
+                      <h3 class="h6 mb-1"><?= htmlspecialchars($alt['alt_name']) ?></h3>
                       <p class="small text-muted mb-2"><?= htmlspecialchars($alt['summary']) ?></p>
                       <div class="d-flex align-items-center justify-content-between">
                         <strong class="price"><?= price_html($alt['price']) ?></strong>
-                        <a href="#" class="btn btn-outline-primary btn-sm">Voir</a>
+                        <a href="detail.php?slug=<?= urlencode($alt['alt_slug'] ?? $product['slug']) ?>" class="btn btn-outline-primary btn-sm">Voir</a>
                       </div>
                     </div>
                   </div>
@@ -545,7 +531,7 @@ function price_html($p, $cur = 'EUR'){
     "@context":"https://schema.org",
     "@type":"Product",
     "name":"<?= htmlspecialchars($product['name']) ?>",
-    "image": <?= json_encode($product['images']['gallery']) ?>,
+    "image": <?= json_encode($galleryImages) ?>,
     "description":"<?= htmlspecialchars($product['baseline']) ?>",
     "category":"<?= htmlspecialchars($product['category']) ?>",
     "brand":{"@type":"Brand","name":"<?= htmlspecialchars($product['brand']) ?>"},
