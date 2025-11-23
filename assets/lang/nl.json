@@ -189,5 +189,8 @@
     "sortHigh": "Prijs: hoog naar laag",
     "noResults": "<strong>Geen resultaten</strong> voor uw zoekopdracht. Probeer andere zoekwoorden of neem contact op met ons team voor gerichte ondersteuning.",
     "contact": "Gecontacteerd worden"
+  },
+  "auth": {
+    "passwordHint": "Je wachtwoorden worden veilig opgeslagen en blijven vertrouwelijk."
   }
 }

@@ -189,5 +189,8 @@
     "sortHigh": "Price: high to low",
     "noResults": "<strong>No results</strong> for your search. Try other keywords or contact our team for tailored support.",
     "contact": "Get contacted"
+  },
+  "auth": {
+    "passwordHint": "Your passwords are stored securely and remain confidential."
   }
 }

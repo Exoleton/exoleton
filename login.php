@@ -203,7 +203,7 @@ $algoInfo = preferred_password_algorithm();
                   <div>
                     <label for="registerPassword" class="form-label">Mot de passe</label>
                     <input type="password" class="form-control" id="registerPassword" name="password" required autocomplete="new-password" minlength="8">
-                    <div class="form-text">Stockage sécurisé via <?= htmlspecialchars($algoInfo['label']); ?>.</div>
+                    <div class="form-text">Vos mots de passe sont conservés de manière sécurisée.</div>
                   </div>
                   <div class="text-end">
                     <button type="submit" class="btn btn-primary">Créer le compte</button>
