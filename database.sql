@@ -1,3 +1,18 @@
+CREATE TABLE IF NOT EXISTS users (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  name VARCHAR(150) NOT NULL,
+  email VARCHAR(190) NOT NULL UNIQUE,
+  password_hash VARCHAR(255) NOT NULL,
+  role ENUM('customer','admin') DEFAULT 'customer',
+  reset_token VARCHAR(255) DEFAULT NULL,
+  reset_expires DATETIME DEFAULT NULL,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+INSERT INTO users (name, email, password_hash, role)
+VALUES ('franck BODO', 'contact@exoleton.com', '$2y$12$45OnS4TSar6egTu3MLcuWO3md5dQIietEXGD6cIOKL1h2xs3hm.KW', 'admin')
+ON DUPLICATE KEY UPDATE name=VALUES(name), role=VALUES(role);
+
 CREATE TABLE IF NOT EXISTS products (
   id INT AUTO_INCREMENT PRIMARY KEY,
   slug VARCHAR(150) NOT NULL UNIQUE,

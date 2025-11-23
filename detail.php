@@ -2,7 +2,7 @@
 // ===============================================
 // detail.php — Page détail produit Exoleton
 // ===============================================
-require __DIR__ . '/db.php';
+require __DIR__ . '/auth.php';
 
 $slug = isset($_GET['slug']) ? trim($_GET['slug']) : 'exolift';
 
@@ -15,6 +15,8 @@ if (!$product) {
   echo '<h1>Produit introuvable</h1>';
   exit;
 }
+
+$currentUser = current_user($pdo);
 
 function price_html($p, $cur = 'EUR'){
   if(!$p || $p <= 0) return 'Sur demande';
@@ -116,6 +118,25 @@ $alternatives = $alternativesStmt->fetchAll();
             <label class="visually-hidden" for="languageSwitcherDetail" data-i18n="lang.label">Langue</label>
             <select id="languageSwitcherDetail" class="form-select form-select-sm" data-language-switcher></select>
           </li>
+          <?php if ($currentUser): ?>
+            <li class="nav-item dropdown ms-lg-3">
+              <a class="nav-link dropdown-toggle" href="#" id="userMenu" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                Bonjour <?= htmlspecialchars($currentUser['name']); ?>
+              </a>
+              <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userMenu">
+                <li><a class="dropdown-item" href="account.php">Mon compte</a></li>
+                <?php if (($currentUser['role'] ?? 'customer') === 'admin'): ?>
+                  <li><a class="dropdown-item" href="admin.php">Administration</a></li>
+                <?php endif; ?>
+                <li><hr class="dropdown-divider"></li>
+                <li><a class="dropdown-item text-danger" href="logout.php">Se déconnecter</a></li>
+              </ul>
+            </li>
+          <?php else: ?>
+            <li class="nav-item ms-lg-3">
+              <a class="btn btn-outline-primary" href="login.php">Connexion</a>
+            </li>
+          <?php endif; ?>
         </ul>
       </nav>
     </div>

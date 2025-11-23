@@ -1,5 +1,5 @@
 <?php
-require __DIR__ . '/db.php';
+require __DIR__ . '/auth.php';
 
 function price_html($p, $cur = 'EUR')
 {
@@ -37,6 +37,8 @@ foreach ($products as $product) {
     'link' => 'detail.php?slug=' . urlencode($product['slug']),
   ];
 }
+
+$currentUser = current_user($pdo);
 
 foreach ($guides as $guide) {
   $results[] = [
@@ -102,6 +104,25 @@ foreach ($guides as $guide) {
             <label class="visually-hidden" for="languageSwitcherSearch" data-i18n="lang.label">Langue</label>
             <select id="languageSwitcherSearch" class="form-select form-select-sm" data-language-switcher></select>
           </li>
+          <?php if ($currentUser): ?>
+            <li class="nav-item dropdown ms-lg-3">
+              <a class="nav-link dropdown-toggle" href="#" id="userMenu" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                Bonjour <?= htmlspecialchars($currentUser['name']); ?>
+              </a>
+              <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userMenu">
+                <li><a class="dropdown-item" href="account.php">Mon compte</a></li>
+                <?php if (($currentUser['role'] ?? 'customer') === 'admin'): ?>
+                  <li><a class="dropdown-item" href="admin.php">Administration</a></li>
+                <?php endif; ?>
+                <li><hr class="dropdown-divider"></li>
+                <li><a class="dropdown-item text-danger" href="logout.php">Se déconnecter</a></li>
+              </ul>
+            </li>
+          <?php else: ?>
+            <li class="nav-item ms-lg-3">
+              <a class="btn btn-outline-primary" href="login.php">Connexion</a>
+            </li>
+          <?php endif; ?>
         </ul>
       </nav>
     </div>
