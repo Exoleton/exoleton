@@ -162,6 +162,7 @@ $announcements = $announcementsStmt->fetchAll();
   <title>Administration – Exoleton</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" integrity="sha512-SzlrxWUlpfuzQ+pcUCosxcglQRNAq/DZjVsC0lE40xsADsfeQoEkyG1Yq0C2J5W72st8trL2Q4C2nDvSV2+ULA==" crossorigin="anonymous" referrerpolicy="no-referrer" />
   <link rel="stylesheet" href="assets/css/main.css">
 </head>
 <body class="bg-light">
@@ -423,86 +424,31 @@ $announcements = $announcementsStmt->fetchAll();
                       </div>
 
                       <div class="col-xl-5">
-                        <div class="card shadow-sm border-0 mb-3">
-                          <div class="card-body">
-                            <h2 class="h6">Ajouter un fournisseur</h2>
-                            <p class="text-muted small">Création rapide d’une fiche fournisseur avec contact et statut dropshipping.</p>
-                            <form method="post" class="vstack gap-3">
-                              <input type="hidden" name="action" value="add_supplier">
-                              <div class="row g-3">
-                                <div class="col-md-6">
-                                  <label class="form-label">Nom du fournisseur</label>
-                                  <input type="text" name="name" class="form-control" required>
-                                </div>
-                                <div class="col-md-6">
-                                  <label class="form-label">Contact</label>
-                                  <input type="text" name="contact_name" class="form-control" placeholder="Nom du contact">
-                                </div>
-                                <div class="col-md-6">
-                                  <label class="form-label">Email</label>
-                                  <input type="email" name="email" class="form-control" placeholder="contact@exemple.com">
-                                </div>
-                                <div class="col-md-6">
-                                  <label class="form-label">Téléphone</label>
-                                  <input type="text" name="phone" class="form-control" placeholder="+33 ...">
-                                </div>
-                                <div class="col-12">
-                                  <label class="form-label">Notes internes</label>
-                                  <textarea name="notes" class="form-control" rows="2" placeholder="Conditions, frais, zones livrées…"></textarea>
-                                </div>
-                                <div class="col-12 form-check">
-                                  <input class="form-check-input" type="checkbox" value="1" id="dropshipping_enabled" name="dropshipping_enabled" checked>
-                                  <label class="form-check-label" for="dropshipping_enabled">Dropshipping activé</label>
-                                </div>
-                              </div>
-                              <div>
-                                <button class="btn btn-primary" type="submit">Ajouter le fournisseur</button>
-                              </div>
-                            </form>
+                        <button type="button" class="card shadow-sm border-0 mb-3 text-start w-100" data-bs-toggle="modal" data-bs-target="#modalAddSupplier">
+                          <div class="card-body d-flex align-items-center justify-content-between">
+                            <div>
+                              <h2 class="h6 mb-1">Ajouter un fournisseur</h2>
+                              <p class="text-muted small mb-0">Création rapide d’une fiche fournisseur avec contact et statut dropshipping.</p>
+                            </div>
+                            <span class="btn btn-primary btn-sm d-inline-flex align-items-center gap-2" aria-hidden="true">
+                              <i class="fa-solid fa-user-plus"></i>
+                              <span class="fw-semibold">Modal</span>
+                            </span>
                           </div>
-                        </div>
+                        </button>
 
-                        <div class="card shadow-sm border-0">
-                          <div class="card-body">
-                            <h2 class="h6">Lier un produit à un fournisseur</h2>
-                            <form method="post" class="row g-3 align-items-end">
-                              <input type="hidden" name="action" value="add_supplier_link">
-                              <div class="col-12">
-                                <label class="form-label">Fournisseur</label>
-                                <select name="supplier_id" class="form-select" required>
-                                  <option value="">Sélectionner…</option>
-                                  <?php foreach ($suppliers as $supplier): ?>
-                                    <option value="<?= (int)$supplier['id'] ?>"><?= htmlspecialchars($supplier['name']) ?></option>
-                                  <?php endforeach; ?>
-                                </select>
-                              </div>
-                              <div class="col-12">
-                                <label class="form-label">Produit</label>
-                                <select name="product_id" class="form-select" required>
-                                  <option value="">Sélectionner…</option>
-                                  <?php foreach ($allProducts as $product): ?>
-                                    <option value="<?= (int)$product['id'] ?>"><?= htmlspecialchars($product['name']) ?></option>
-                                  <?php endforeach; ?>
-                                </select>
-                              </div>
-                              <div class="col-md-4">
-                                <label class="form-label">SKU fournisseur</label>
-                                <input type="text" name="supplier_sku" class="form-control" placeholder="Référence interne">
-                              </div>
-                              <div class="col-md-4">
-                                <label class="form-label">Prix d'achat (€)</label>
-                                <input type="number" name="buy_price" class="form-control" min="0" step="1" placeholder="HT">
-                              </div>
-                              <div class="col-md-4">
-                                <label class="form-label">Délai (jours)</label>
-                                <input type="number" name="lead_time_days" class="form-control" min="0" step="1" placeholder="0">
-                              </div>
-                              <div class="col-12">
-                                <button class="btn btn-primary w-100" type="submit">Associer</button>
-                              </div>
-                            </form>
+                        <button type="button" class="card shadow-sm border-0 text-start w-100" data-bs-toggle="modal" data-bs-target="#modalLinkSupplier">
+                          <div class="card-body d-flex align-items-center justify-content-between">
+                            <div>
+                              <h2 class="h6 mb-1">Lier un produit à un fournisseur</h2>
+                              <p class="text-muted small mb-0">Associer un produit existant à un fournisseur.</p>
+                            </div>
+                            <span class="btn btn-outline-primary btn-sm d-inline-flex align-items-center gap-2" aria-hidden="true">
+                              <i class="fa-solid fa-link"></i>
+                              <span class="fw-semibold">Modal</span>
+                            </span>
                           </div>
-                        </div>
+                        </button>
                       </div>
                     </div>
                   </div>
@@ -677,100 +623,17 @@ $announcements = $announcementsStmt->fetchAll();
                           </div>
 
                           <div class="col-lg-7">
-                            <h2 class="h5">Annonces "Sélection du moment"</h2>
-                            <p class="text-muted small">Définissez les messages et produits à mettre en avant sur la page d’accueil.</p>
-
-                            <form method="post" class="row g-3 align-items-end">
-                              <input type="hidden" name="action" value="add_announcement">
-                              <div class="col-md-4">
-                                <label class="form-label">Titre</label>
-                                <input type="text" name="title" class="form-control" required>
+                            <div class="d-flex align-items-center justify-content-between">
+                              <div>
+                                <h2 class="h5 mb-1">Annonces "Sélection du moment"</h2>
+                                <p class="text-muted small mb-0">Définissez les messages et produits à mettre en avant sur la page d’accueil.</p>
                               </div>
-                              <div class="col-md-4">
-                                <label class="form-label">Message court</label>
-                                <input type="text" name="message" class="form-control" placeholder="Ce qui rend l’offre unique">
-                              </div>
-                              <div class="col-md-4">
-                                <label class="form-label">URL personnalisée</label>
-                                <input type="url" name="link_url" class="form-control" placeholder="https://… (facultatif)">
-                              </div>
-                              <div class="col-md-3">
-                                <label class="form-label">Produit lié</label>
-                                <select name="product_id" class="form-select">
-                                  <option value="">Aucun</option>
-                                  <?php foreach ($allProducts as $product): ?>
-                                    <option value="<?= (int)$product['id'] ?>"><?= htmlspecialchars($product['name']) ?></option>
-                                  <?php endforeach; ?>
-                                </select>
-                              </div>
-                              <div class="col-md-3">
-                                <label class="form-label">Priorité</label>
-                                <input type="number" name="priority" class="form-control" value="0" step="1">
-                              </div>
-                              <div class="col-md-3">
-                                <label class="form-label">Début</label>
-                                <input type="datetime-local" name="start_at" class="form-control">
-                              </div>
-                              <div class="col-md-3">
-                                <label class="form-label">Fin</label>
-                                <input type="datetime-local" name="end_at" class="form-control">
-                              </div>
-                              <div class="col-12 form-check">
-                                <input class="form-check-input" type="checkbox" value="1" id="is_active" name="is_active" checked>
-                                <label class="form-check-label" for="is_active">Activer immédiatement</label>
-                              </div>
-                              <div class="col-12">
-                                <button class="btn btn-primary" type="submit">Ajouter l’annonce</button>
-                              </div>
-                            </form>
-
-                            <?php if (!empty($announcements)): ?>
-                              <div class="table-responsive mt-4">
-                                <table class="table table-sm align-middle">
-                                  <thead>
-                                    <tr>
-                                      <th>Titre</th>
-                                      <th>Produit/URL</th>
-                                      <th>Période</th>
-                                      <th>Priorité</th>
-                                      <th class="text-end">Statut</th>
-                                    </tr>
-                                  </thead>
-                                  <tbody>
-                                    <?php foreach ($announcements as $announcement): ?>
-                                      <tr>
-                                        <td>
-                                          <strong><?= htmlspecialchars($announcement['title']) ?></strong><br>
-                                          <span class="text-muted small"><?= htmlspecialchars($announcement['message'] ?: '—') ?></span>
-                                        </td>
-                                        <td class="small">
-                                          <?php if (!empty($announcement['product_name'])): ?>
-                                            Produit : <?= htmlspecialchars($announcement['product_name']) ?><br>
-                                          <?php endif; ?>
-                                          <?= htmlspecialchars($announcement['link_url'] ?: '—') ?>
-                                        </td>
-                                        <td class="small text-muted">
-                                          <?= $announcement['start_at'] ? htmlspecialchars($announcement['start_at']) : '—' ?>
-                                          →
-                                          <?= $announcement['end_at'] ? htmlspecialchars($announcement['end_at']) : '—' ?>
-                                        </td>
-                                        <td><?= (int)$announcement['priority'] ?></td>
-                                        <td class="text-end">
-                                          <form method="post" class="d-inline">
-                                            <input type="hidden" name="action" value="toggle_announcement">
-                                            <input type="hidden" name="announcement_id" value="<?= (int)$announcement['id'] ?>">
-                                            <input type="hidden" name="target_state" value="<?= $announcement['is_active'] ? 0 : 1 ?>">
-                                            <button class="btn btn-sm <?= $announcement['is_active'] ? 'btn-success' : 'btn-outline-secondary' ?>" type="submit">
-                                              <?= $announcement['is_active'] ? 'Actif' : 'Inactif' ?>
-                                            </button>
-                                          </form>
-                                        </td>
-                                      </tr>
-                                    <?php endforeach; ?>
-                                  </tbody>
-                                </table>
-                              </div>
-                            <?php endif; ?>
+                              <button class="btn btn-primary btn-sm d-inline-flex align-items-center gap-2" type="button" data-bs-toggle="modal" data-bs-target="#modalAnnouncements" aria-label="Ouvrir la gestion des annonces">
+                                <i class="fa-solid fa-bullhorn"></i>
+                                <span class="fw-semibold">Ouvrir le modal</span>
+                              </button>
+                            </div>
+                            <p class="text-muted small mt-3 mb-0">Cliquez sur l’icône pour accéder aux formulaires de création et au tableau des annonces.</p>
                           </div>
                         </div>
                       </div>
@@ -784,6 +647,205 @@ $announcements = $announcementsStmt->fetchAll();
       </div>
     </div>
   </main>
+
+  <!-- Modals -->
+  <div class="modal fade" id="modalAddSupplier" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">Ajouter un fournisseur</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fermer"></button>
+        </div>
+        <div class="modal-body">
+          <form method="post" class="vstack gap-3">
+            <input type="hidden" name="action" value="add_supplier">
+            <div class="row g-3">
+              <div class="col-md-6">
+                <label class="form-label">Nom du fournisseur</label>
+                <input type="text" name="name" class="form-control" required>
+              </div>
+              <div class="col-md-6">
+                <label class="form-label">Contact</label>
+                <input type="text" name="contact_name" class="form-control" placeholder="Nom du contact">
+              </div>
+              <div class="col-md-6">
+                <label class="form-label">Email</label>
+                <input type="email" name="email" class="form-control" placeholder="contact@exemple.com">
+              </div>
+              <div class="col-md-6">
+                <label class="form-label">Téléphone</label>
+                <input type="text" name="phone" class="form-control" placeholder="+33 ...">
+              </div>
+              <div class="col-12">
+                <label class="form-label">Notes internes</label>
+                <textarea name="notes" class="form-control" rows="2" placeholder="Conditions, frais, zones livrées…"></textarea>
+              </div>
+              <div class="col-12 form-check">
+                <input class="form-check-input" type="checkbox" value="1" id="dropshipping_enabled" name="dropshipping_enabled" checked>
+                <label class="form-check-label" for="dropshipping_enabled">Dropshipping activé</label>
+              </div>
+            </div>
+            <div class="text-end">
+              <button class="btn btn-primary" type="submit">Ajouter le fournisseur</button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal fade" id="modalLinkSupplier" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">Lier un produit à un fournisseur</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fermer"></button>
+        </div>
+        <div class="modal-body">
+          <form method="post" class="row g-3 align-items-end">
+            <input type="hidden" name="action" value="add_supplier_link">
+            <div class="col-12">
+              <label class="form-label">Fournisseur</label>
+              <select name="supplier_id" class="form-select" required>
+                <option value="">Sélectionner…</option>
+                <?php foreach ($suppliers as $supplier): ?>
+                  <option value="<?= (int)$supplier['id'] ?>"><?= htmlspecialchars($supplier['name']) ?></option>
+                <?php endforeach; ?>
+              </select>
+            </div>
+            <div class="col-12">
+              <label class="form-label">Produit</label>
+              <select name="product_id" class="form-select" required>
+                <option value="">Sélectionner…</option>
+                <?php foreach ($allProducts as $product): ?>
+                  <option value="<?= (int)$product['id'] ?>"><?= htmlspecialchars($product['name']) ?></option>
+                <?php endforeach; ?>
+              </select>
+            </div>
+            <div class="col-md-4">
+              <label class="form-label">SKU fournisseur</label>
+              <input type="text" name="supplier_sku" class="form-control" placeholder="Référence interne">
+            </div>
+            <div class="col-md-4">
+              <label class="form-label">Prix d'achat (€)</label>
+              <input type="number" name="buy_price" class="form-control" min="0" step="1" placeholder="HT">
+            </div>
+            <div class="col-md-4">
+              <label class="form-label">Délai (jours)</label>
+              <input type="number" name="lead_time_days" class="form-control" min="0" step="1" placeholder="0">
+            </div>
+            <div class="col-12">
+              <button class="btn btn-primary w-100" type="submit">Associer</button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal fade" id="modalAnnouncements" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-xl modal-dialog-centered">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">Gestion des annonces</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fermer"></button>
+        </div>
+        <div class="modal-body">
+          <form method="post" class="row g-3 align-items-end">
+            <input type="hidden" name="action" value="add_announcement">
+            <div class="col-md-4">
+              <label class="form-label">Titre</label>
+              <input type="text" name="title" class="form-control" required>
+            </div>
+            <div class="col-md-4">
+              <label class="form-label">Message court</label>
+              <input type="text" name="message" class="form-control" placeholder="Ce qui rend l’offre unique">
+            </div>
+            <div class="col-md-4">
+              <label class="form-label">URL personnalisée</label>
+              <input type="url" name="link_url" class="form-control" placeholder="https://… (facultatif)">
+            </div>
+            <div class="col-md-3">
+              <label class="form-label">Produit lié</label>
+              <select name="product_id" class="form-select">
+                <option value="">Aucun</option>
+                <?php foreach ($allProducts as $product): ?>
+                  <option value="<?= (int)$product['id'] ?>"><?= htmlspecialchars($product['name']) ?></option>
+                <?php endforeach; ?>
+              </select>
+            </div>
+            <div class="col-md-3">
+              <label class="form-label">Priorité</label>
+              <input type="number" name="priority" class="form-control" value="0" step="1">
+            </div>
+            <div class="col-md-3">
+              <label class="form-label">Début</label>
+              <input type="datetime-local" name="start_at" class="form-control">
+            </div>
+            <div class="col-md-3">
+              <label class="form-label">Fin</label>
+              <input type="datetime-local" name="end_at" class="form-control">
+            </div>
+            <div class="col-12 form-check">
+              <input class="form-check-input" type="checkbox" value="1" id="is_active" name="is_active" checked>
+              <label class="form-check-label" for="is_active">Activer immédiatement</label>
+            </div>
+            <div class="col-12">
+              <button class="btn btn-primary" type="submit">Ajouter l’annonce</button>
+            </div>
+          </form>
+
+          <?php if (!empty($announcements)): ?>
+            <div class="table-responsive mt-4">
+              <table class="table table-sm align-middle">
+                <thead>
+                  <tr>
+                    <th>Titre</th>
+                    <th>Produit/URL</th>
+                    <th>Période</th>
+                    <th>Priorité</th>
+                    <th class="text-end">Statut</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <?php foreach ($announcements as $announcement): ?>
+                    <tr>
+                      <td>
+                        <strong><?= htmlspecialchars($announcement['title']) ?></strong><br>
+                        <span class="text-muted small"><?= htmlspecialchars($announcement['message'] ?: '—') ?></span>
+                      </td>
+                      <td class="small">
+                        <?php if (!empty($announcement['product_name'])): ?>
+                          Produit : <?= htmlspecialchars($announcement['product_name']) ?><br>
+                        <?php endif; ?>
+                        <?= htmlspecialchars($announcement['link_url'] ?: '—') ?>
+                      </td>
+                      <td class="small text-muted">
+                        <?= $announcement['start_at'] ? htmlspecialchars($announcement['start_at']) : '—' ?>
+                        →
+                        <?= $announcement['end_at'] ? htmlspecialchars($announcement['end_at']) : '—' ?>
+                      </td>
+                      <td><?= (int)$announcement['priority'] ?></td>
+                      <td class="text-end">
+                        <form method="post" class="d-inline">
+                          <input type="hidden" name="action" value="toggle_announcement">
+                          <input type="hidden" name="announcement_id" value="<?= (int)$announcement['id'] ?>">
+                          <input type="hidden" name="target_state" value="<?= $announcement['is_active'] ? 0 : 1 ?>">
+                          <button class="btn btn-sm <?= $announcement['is_active'] ? 'btn-success' : 'btn-outline-secondary' ?>" type="submit">
+                            <?= $announcement['is_active'] ? 'Actif' : 'Inactif' ?>
+                          </button>
+                        </form>
+                      </td>
+                    </tr>
+                  <?php endforeach; ?>
+                </tbody>
+              </table>
+            </div>
+          <?php endif; ?>
+        </div>
+      </div>
+    </div>
+  </div>
 
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 </body>
