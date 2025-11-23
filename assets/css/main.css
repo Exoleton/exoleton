@@ -120,3 +120,23 @@ footer .footer-link.btn-link:focus-visible{
     width:100%;
   }
 }
+
+/* ===== Recherche ===== */
+.search-page .search-hero{
+  position:relative;
+  overflow:hidden;
+}
+.search-page .search-box .form-control{
+  box-shadow:none;
+}
+.search-page .search-box .form-control:focus{
+  box-shadow:0 0 0 .25rem rgba(30,136,229,.2);
+}
+.search-page .badge.text-bg-light{
+  background-color:#f4f7fb;
+  color:#0f172a;
+  border:1px solid rgba(15,23,42,.08);
+}
+.search-page .product-card .badge.text-bg-light{
+  border-color:rgba(15,23,42,.05);
+}

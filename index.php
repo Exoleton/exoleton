@@ -55,6 +55,7 @@
           </li>
           <li class="nav-item"><a class="nav-link" href="#comparateur">Comparateur</a></li>
           <li class="nav-item"><a class="nav-link" href="#guides">Guides</a></li>
+          <li class="nav-item"><a class="nav-link" href="recherche.php">Recherche</a></li>
           <li class="nav-item ms-lg-3">
             <a class="btn btn-primary" href="#cta">Découvrir les solutions</a>
           </li>
@@ -292,6 +293,7 @@
             <li><a class="footer-link" href="#produits">Produits</a></li>
             <li><a class="footer-link" href="#comparateur">Comparateur</a></li>
             <li><a class="footer-link" href="#guides">Guides</a></li>
+            <li><a class="footer-link" href="recherche.php">Recherche</a></li>
           </ul>
         </div>
         <div class="col-6 col-md-3">
