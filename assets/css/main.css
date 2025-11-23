@@ -9,6 +9,20 @@ html { scroll-behavior: smooth; }
 body { padding-top:72px; }          /* compense la navbar fixed-top */
 section[id] { scroll-margin-top: 84px; }  /* offset propre pour les ancres (#produits, etc.) */
 
+/* Mise en avant du lien Recherche dans la navbar */
+.nav-search-highlight{
+  color:var(--movalya-blue) !important;
+  font-weight:700;
+  letter-spacing:.01em;
+}
+.nav-search-highlight .search-icon{
+  font-size:1.05rem;
+}
+.nav-search-highlight:hover,
+.nav-search-highlight:focus{
+  color:#0b6fcc !important;
+}
+
 /* Réinitialisations douces */
 img{max-width:100%;height:auto;display:block}
 
