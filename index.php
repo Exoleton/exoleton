@@ -127,7 +127,7 @@
               <p class="text-muted small mb-3">Assistance au levage jusqu’à 30 kg · Batterie échangeable</p>
               <div class="d-flex align-items-center justify-content-between">
                 <strong class="price">4 500 €</strong>
-                <a href="#" class="btn btn-outline-primary btn-sm">Voir les détails</a>
+                <a href="detail.php" class="btn btn-outline-primary btn-sm">Voir les détails</a>
               </div>
             </div>
           </article>
