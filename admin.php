@@ -213,7 +213,11 @@ $announcements = $announcementsStmt->fetchAll();
                   <div class="card-body">
                     <h2 class="h6 mb-3">Menu d’administration</h2>
                     <div class="nav flex-column nav-pills gap-2" id="adminMenu" role="tablist">
-                      <button class="nav-link d-flex align-items-center active" id="tab-suppliers-tab" data-bs-toggle="pill" data-bs-target="#tab-suppliers" type="button" role="tab" aria-controls="tab-suppliers" aria-selected="true">
+                      <button class="nav-link d-flex align-items-center active" id="tab-overview-tab" data-bs-toggle="pill" data-bs-target="#tab-overview" type="button" role="tab" aria-controls="tab-overview" aria-selected="true">
+                        <span>Vue d’ensemble</span>
+                        <span class="badge bg-primary-subtle text-primary ms-auto">Stats</span>
+                      </button>
+                      <button class="nav-link d-flex align-items-center" id="tab-suppliers-tab" data-bs-toggle="pill" data-bs-target="#tab-suppliers" type="button" role="tab" aria-controls="tab-suppliers" aria-selected="false">
                         <span>Fournisseurs</span>
                         <span class="badge bg-primary-subtle text-primary ms-auto"><?= count($suppliers) ?></span>
                       </button>
@@ -235,7 +239,101 @@ $announcements = $announcementsStmt->fetchAll();
 
               <div class="col-lg-8 col-xl-9">
                 <div class="tab-content" id="adminMenuContent">
-                  <div class="tab-pane fade show active" id="tab-suppliers" role="tabpanel" aria-labelledby="tab-suppliers-tab">
+                  <div class="tab-pane fade show active" id="tab-overview" role="tabpanel" aria-labelledby="tab-overview-tab">
+                    <div class="row g-4 mb-4">
+                      <div class="col-md-6 col-xl-3">
+                        <div class="card shadow-sm border-0 h-100">
+                          <div class="card-body">
+                            <p class="text-muted small mb-1">Catalogue produits</p>
+                            <div class="d-flex align-items-center justify-content-between mb-2">
+                              <span class="h4 mb-0"><?= count($productsTable) ?></span>
+                              <span class="badge bg-primary-subtle text-primary">Actifs</span>
+                            </div>
+                            <p class="small text-muted mb-0">Produits prêts pour la mise en avant ou l’association fournisseur.</p>
+                          </div>
+                        </div>
+                      </div>
+                      <div class="col-md-6 col-xl-3">
+                        <div class="card shadow-sm border-0 h-100">
+                          <div class="card-body">
+                            <p class="text-muted small mb-1">Fournisseurs</p>
+                            <div class="d-flex align-items-center justify-content-between mb-2">
+                              <span class="h4 mb-0"><?= count($suppliers) ?></span>
+                              <span class="badge bg-success-subtle text-success">Partenaires</span>
+                            </div>
+                            <p class="small text-muted mb-0">Contacts disponibles pour relier des produits et activer le dropshipping.</p>
+                          </div>
+                        </div>
+                      </div>
+                      <div class="col-md-6 col-xl-3">
+                        <div class="card shadow-sm border-0 h-100">
+                          <div class="card-body">
+                            <p class="text-muted small mb-1">Mises en avant</p>
+                            <div class="d-flex align-items-center justify-content-between mb-2">
+                              <span class="h4 mb-0"><?= count($featuredProducts) + count($featuredSuppliers) ?></span>
+                              <span class="badge bg-warning-subtle text-warning">Prioritaires</span>
+                            </div>
+                            <p class="small text-muted mb-0">Produits et fournisseurs affichés en priorité sur le site.</p>
+                          </div>
+                        </div>
+                      </div>
+                      <div class="col-md-6 col-xl-3">
+                        <div class="card shadow-sm border-0 h-100">
+                          <div class="card-body">
+                            <p class="text-muted small mb-1">Annonces</p>
+                            <div class="d-flex align-items-center justify-content-between mb-2">
+                              <span class="h4 mb-0"><?= count($announcements) ?></span>
+                              <span class="badge bg-info-subtle text-info">Actives</span>
+                            </div>
+                            <p class="small text-muted mb-0">Messages en page d’accueil pour guider les visiteurs.</p>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div class="card shadow-sm border-0">
+                      <div class="card-body">
+                        <div class="d-flex align-items-center justify-content-between flex-wrap gap-3 mb-3">
+                          <div>
+                            <h2 class="h5 mb-1">Actions rapides</h2>
+                            <p class="text-muted small mb-0">Accédez directement aux formulaires d’ajout dans la colonne centrale.</p>
+                          </div>
+                          <span class="badge bg-light text-dark">Tout est regroupé ici</span>
+                        </div>
+                        <div class="row g-3">
+                          <div class="col-md-4">
+                            <div class="card h-100 border-0 bg-primary-subtle text-primary">
+                              <div class="card-body d-flex flex-column">
+                                <div class="fw-semibold mb-1">Ajouter un produit</div>
+                                <p class="small mb-3">Créez une fiche détaillée et préparez-la pour la mise en avant.</p>
+                                <button class="btn btn-primary mt-auto" data-bs-toggle="pill" data-bs-target="#tab-products" type="button">Ouvrir le catalogue</button>
+                              </div>
+                            </div>
+                          </div>
+                          <div class="col-md-4">
+                            <div class="card h-100 border-0 bg-success-subtle text-success">
+                              <div class="card-body d-flex flex-column">
+                                <div class="fw-semibold mb-1">Ajouter un fournisseur</div>
+                                <p class="small mb-3">Ajoutez un partenaire et connectez-le à vos références.</p>
+                                <button class="btn btn-success mt-auto" data-bs-toggle="pill" data-bs-target="#tab-suppliers" type="button">Gérer les fournisseurs</button>
+                              </div>
+                            </div>
+                          </div>
+                          <div class="col-md-4">
+                            <div class="card h-100 border-0 bg-warning-subtle text-warning">
+                              <div class="card-body d-flex flex-column">
+                                <div class="fw-semibold mb-1">Mettre en avant</div>
+                                <p class="small mb-3">Choisissez les annonces et sélections visibles sur la page d’accueil.</p>
+                                <button class="btn btn-warning text-dark mt-auto" data-bs-toggle="pill" data-bs-target="#tab-highlights" type="button">Ouvrir les mises en avant</button>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div class="tab-pane fade" id="tab-suppliers" role="tabpanel" aria-labelledby="tab-suppliers-tab">
                     <div class="row g-4">
                       <div class="col-xl-7">
                         <div class="card shadow-sm border-0 h-100">
