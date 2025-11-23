@@ -120,7 +120,7 @@ $algoInfo = preferred_password_algorithm();
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
   <link rel="stylesheet" href="assets/css/main.css">
 </head>
-<body class="bg-light">
+<body class="bg-light d-flex flex-column min-vh-100">
   <header class="navbar navbar-expand-lg navbar-light bg-white fixed-top shadow-sm">
     <div class="container d-flex align-items-center justify-content-between">
       <a class="navbar-brand d-flex align-items-center" href="index.php">
@@ -134,7 +134,7 @@ $algoInfo = preferred_password_algorithm();
     </div>
   </header>
 
-  <main class="container" style="padding-top: 7rem; padding-bottom: 4rem;">
+  <main class="container flex-grow-1" style="padding-top: 7rem; padding-bottom: 4rem;">
     <div class="row justify-content-center">
       <div class="col-lg-8 col-xl-7">
         <div class="card shadow-sm border-0">
@@ -237,6 +237,54 @@ $algoInfo = preferred_password_algorithm();
       </div>
     </div>
   </main>
+
+  <footer class="pt-5 bg-dark text-white mt-auto">
+    <div class="container">
+      <div class="row g-4">
+        <div class="col-md-4">
+          <div class="d-flex align-items-center mb-3">
+            <img src="assets/img/logo.png" alt="Exoleton" width="136" height="50" class="me-2">
+          </div>
+          <p class="text-white-50" data-i18n="footer.mission">Site d’exosquelettes et technologies d’assistance. Notre mission : rendre la mobilité augmentée accessible à tous.</p>
+        </div>
+        <div class="col-6 col-md-2">
+          <h3 class="h6" data-i18n="footer.navigation">Navigation</h3>
+          <ul class="list-unstyled">
+            <li><a class="footer-link" href="index.php" data-i18n="nav.home">Accueil</a></li>
+            <li><a class="footer-link" href="#" data-i18n="nav.products">Produits</a></li>
+            <li><a class="footer-link" href="#" data-i18n="nav.comparator">Comparateur</a></li>
+            <li><a class="footer-link" href="#" data-i18n="nav.guides">Guides</a></li>
+            <li><a class="footer-link" href="recherche.php" data-i18n="nav.search">Recherche</a></li>
+          </ul>
+        </div>
+        <div class="col-6 col-md-3">
+          <h3 class="h6" data-i18n="footer.resources">Ressources</h3>
+          <ul class="list-unstyled">
+            <li><a class="footer-link" href="#" data-i18n="footer.faq">FAQ</a></li>
+            <li><a class="footer-link" href="#" data-i18n="footer.support">Support</a></li>
+            <li><a class="footer-link" href="#" data-i18n="footer.legal">Mentions légales</a></li>
+            <li><a class="footer-link" href="#" data-i18n="footer.privacy">Politique de confidentialité</a></li>
+          </ul>
+        </div>
+        <div class="col-md-3">
+          <h3 class="h6" data-i18n="footer.newsletter">Newsletter</h3>
+          <form class="d-flex gap-2" action="#" method="post" onsubmit="return false;">
+            <input type="email" class="form-control" placeholder="Votre email" aria-label="Votre email" data-i18n-placeholder="footer.email">
+            <button class="btn btn-success" data-i18n="footer.subscribe">S’inscrire</button>
+          </form>
+        </div>
+      </div>
+      <hr class="border-secondary my-4">
+      <div class="d-flex flex-column flex-md-row justify-content-between align-items-center pb-4">
+        <small class="text-white-50" data-i18n="footer.rights" data-i18n-html="true">© <span id="year"></span> Exoleton. Tous droits réservés.</small>
+        <div class="d-flex gap-3 mt-3 mt-md-0">
+          <a class="footer-link" href="#" aria-label="Twitter">Twitter</a>
+          <a class="footer-link" href="#" aria-label="LinkedIn">LinkedIn</a>
+          <a class="footer-link" href="#" aria-label="YouTube">YouTube</a>
+        </div>
+      </div>
+    </div>
+  </footer>
 
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
   <script src="assets/js/i18n.js"></script>
