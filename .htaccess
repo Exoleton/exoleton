@@ -1,0 +1,9 @@
+RewriteEngine On
+
+# Allow direct access to existing files and directories
+RewriteCond %{REQUEST_FILENAME} -f [OR]
+RewriteCond %{REQUEST_FILENAME} -d
+RewriteRule ^ - [L]
+
+# Redirect requests prefixed with a supported language to the base path
+RewriteRule ^(fr|en|de|it|es|pt|nl|pl|jp|zh|kr|ru)/(.*)$ /$2 [L,NC,QSA]
