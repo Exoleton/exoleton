@@ -17,9 +17,9 @@ $guides = $guidesStmt->fetchAll();
 <html lang="fr">
 <head>
   <meta charset="utf-8">
-  <title>Exoleton – Site d’exosquelettes et technologies d’assistance</title>
+  <title data-i18n="meta.title">Exoleton – Site d’exosquelettes et technologies d’assistance</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="description" content="Découvrez, comparez et accédez aux meilleures solutions d’exosquelettes et technologies d’assistance pour professionnels, collectivités et particuliers.">
+  <meta name="description" content="Découvrez, comparez et accédez aux meilleures solutions d’exosquelettes et technologies d’assistance pour professionnels, collectivités et particuliers." data-i18n-description="meta.description">
 
   <!-- Canonical (ok de laisser, n'affecte pas le chargement local) -->
   <link rel="canonical" href="https://exoleton.com/">
@@ -33,8 +33,8 @@ $guides = $guidesStmt->fetchAll();
 
 
   <!-- Open Graph (CHEMIN RELATIF) -->
-  <meta property="og:title" content="Exoleton – La mobilité augmentée, accessible à tous">
-  <meta property="og:description" content="Site de référence pour exosquelettes et assistances physiques.">
+  <meta property="og:title" content="Exoleton – La mobilité augmentée, accessible à tous" data-i18n-property="og:title:meta.ogTitle">
+  <meta property="og:description" content="Site de référence pour exosquelettes et assistances physiques." data-i18n-property="og:description:meta.ogDescription">
   <meta property="og:image" content="assets/img/hero-exosquelette.jpg">
   <meta property="og:type" content="website">
 
@@ -58,26 +58,31 @@ $guides = $guidesStmt->fetchAll();
       </button>
       <nav id="mainNav" class="collapse navbar-collapse">
         <ul class="navbar-nav ms-auto mb-2 mb-lg-0 align-items-lg-center">
-          <li class="nav-item"><a class="nav-link" href="index.php">Accueil</a></li>
+          <li class="nav-item"><a class="nav-link" href="index.php" data-i18n="nav.home">Accueil</a></li>
           <li class="nav-item dropdown">
-            <a class="nav-link dropdown-toggle" href="#produits" id="produitsMenu" role="button" data-bs-toggle="dropdown" aria-expanded="false">Produits</a>
+            <a class="nav-link dropdown-toggle" href="#produits" id="produitsMenu" role="button" data-bs-toggle="dropdown" aria-expanded="false" data-i18n="nav.products">Produits</a>
             <ul class="dropdown-menu" aria-labelledby="produitsMenu">
-              <li><a class="dropdown-item" href="#produits">Industriel</a></li>
-              <li><a class="dropdown-item" href="#produits">Médical / Rééducation</a></li>
-              <li><a class="dropdown-item" href="#produits">Particulier / Quotidien</a></li>
-              <li><a class="dropdown-item" href="#produits">Collectivités / Soins</a></li>
+              <li><a class="dropdown-item" href="#produits" data-i18n="nav.industrial">Industriel</a></li>
+              <li><a class="dropdown-item" href="#produits" data-i18n="nav.medical">Médical / Rééducation</a></li>
+              <li><a class="dropdown-item" href="#produits" data-i18n="nav.consumer">Particulier / Quotidien</a></li>
+              <li><a class="dropdown-item" href="#produits" data-i18n="nav.care">Collectivités / Soins</a></li>
             </ul>
           </li>
-          <li class="nav-item"><a class="nav-link" href="#comparateur">Comparateur</a></li>
-          <li class="nav-item"><a class="nav-link" href="#guides">Guides</a></li>
+          <li class="nav-item"><a class="nav-link" href="#comparateur" data-i18n="nav.comparator">Comparateur</a></li>
+          <li class="nav-item"><a class="nav-link" href="#guides" data-i18n="nav.guides">Guides</a></li>
           <li class="nav-item">
             <a class="nav-link nav-search-highlight d-flex align-items-center gap-1" href="recherche.php">
-              <span>Recherche</span>
+              <span data-i18n="nav.search">Recherche</span>
               <span class="search-icon" aria-hidden="true">🔍</span>
             </a>
           </li>
           <li class="nav-item ms-lg-3">
-            <a class="btn btn-primary" href="#cta">Découvrir les solutions</a>
+            <a class="btn btn-primary" href="#cta" data-i18n="nav.cta">Découvrir les solutions</a>
+          </li>
+          <li class="nav-item ms-lg-3">
+            <label class="visually-hidden" for="languageSwitcher" data-i18n="lang.label">Langue</label>
+            <select id="languageSwitcher" class="form-select form-select-sm" data-language-switcher>
+            </select>
           </li>
         </ul>
       </nav>
@@ -91,14 +96,14 @@ $guides = $guidesStmt->fetchAll();
     <div class="container position-relative py-5">
       <div class="row align-items-center" style="min-height: 50vh;">
         <div class="col-lg-7">
-          <h1 class="display-5 fw-bold mb-3">La mobilité augmentée, accessible à tous.</h1>
-          <p class="lead mb-4">
+          <h1 class="display-5 fw-bold mb-3" data-i18n="hero.title">La mobilité augmentée, accessible à tous.</h1>
+          <p class="lead mb-4" data-i18n="hero.lead">
             Exoleton est le site de référence pour les exosquelettes et technologies d’assistance.
             Découvrez, comparez et accédez aux solutions adaptées à vos besoins professionnels et personnels.
           </p>
           <div class="d-flex gap-3">
-            <a href="#produits" class="btn btn-primary btn-lg">Explorer les produits</a>
-            <a href="#guides" class="btn btn-outline-light btn-lg">Lire les guides</a>
+            <a href="#produits" class="btn btn-primary btn-lg" data-i18n="hero.primary">Explorer les produits</a>
+            <a href="#guides" class="btn btn-outline-light btn-lg" data-i18n="hero.secondary">Lire les guides</a>
           </div>
         </div>
       </div>
@@ -111,18 +116,18 @@ $guides = $guidesStmt->fetchAll();
       <div class="row text-center g-4">
         <div class="col-md-4">
           <div class="icon-badge mx-auto mb-3">✓</div>
-          <h3 class="h5">Large choix de modèles</h3>
-          <p class="text-muted mb-0">Une sélection couvrant les usages industriels, médicaux et du quotidien.</p>
+          <h3 class="h5" data-i18n="advantages.title1">Large choix de modèles</h3>
+          <p class="text-muted mb-0" data-i18n="advantages.desc1">Une sélection couvrant les usages industriels, médicaux et du quotidien.</p>
         </div>
         <div class="col-md-4">
           <div class="icon-badge mx-auto mb-3">★</div>
-          <h3 class="h5">Partenaires de confiance</h3>
-          <p class="text-muted mb-0">Fabricants reconnus, produits certifiés et processus d’achat encadré.</p>
+          <h3 class="h5" data-i18n="advantages.title2">Partenaires de confiance</h3>
+          <p class="text-muted mb-0" data-i18n="advantages.desc2">Fabricants reconnus, produits certifiés et processus d’achat encadré.</p>
         </div>
         <div class="col-md-4">
           <div class="icon-badge mx-auto mb-3">ℹ︎</div>
-          <h3 class="h5">Conseils d’experts</h3>
-          <p class="text-muted mb-0">Guides, cas d’usage et comparatifs pour choisir en toute sérénité.</p>
+          <h3 class="h5" data-i18n="advantages.title3">Conseils d’experts</h3>
+          <p class="text-muted mb-0" data-i18n="advantages.desc3">Guides, cas d’usage et comparatifs pour choisir en toute sérénité.</p>
         </div>
       </div>
     </div>
@@ -132,8 +137,8 @@ $guides = $guidesStmt->fetchAll();
   <section id="produits" class="py-5">
     <div class="container">
       <div class="d-flex align-items-center justify-content-between mb-4">
-        <h2 class="h3 mb-0">Sélection du moment</h2>
-        <a href="#comparateur" class="link-primary">Comparer les modèles →</a>
+        <h2 class="h3 mb-0" data-i18n="selection.title">Sélection du moment</h2>
+        <a href="#comparateur" class="link-primary" data-i18n="selection.link">Comparer les modèles →</a>
       </div>
 
       <div class="row g-4">
@@ -149,7 +154,7 @@ $guides = $guidesStmt->fetchAll();
                 <p class="text-muted small mb-3"><?= htmlspecialchars($product['summary']) ?></p>
                 <div class="d-flex align-items-center justify-content-between">
                   <strong class="price"><?= price_html((int)$product['price'], $product['currency']) ?></strong>
-                  <a href="detail.php?slug=<?= urlencode($product['slug']) ?>" class="btn btn-outline-primary btn-sm">Voir les détails</a>
+                  <a href="detail.php?slug=<?= urlencode($product['slug']) ?>" class="btn btn-outline-primary btn-sm" data-i18n="selection.details">Voir les détails</a>
                 </div>
               </div>
             </article>
@@ -165,20 +170,20 @@ $guides = $guidesStmt->fetchAll();
     <div class="container">
       <div class="row align-items-center g-4">
         <div class="col-lg-6">
-          <h2 class="h3 mb-3">Comparer en un coup d’œil</h2>
-          <p class="text-muted">Poids, autonomie, type d’assistance, charge supportée, certifications… Notre comparateur vous aide à sélectionner le bon modèle pour votre activité.</p>
-          <a class="btn btn-primary" href="#cta">Accéder au comparateur</a>
+          <h2 class="h3 mb-3" data-i18n="comparator.title">Comparer en un coup d’œil</h2>
+          <p class="text-muted" data-i18n="comparator.desc">Poids, autonomie, type d’assistance, charge supportée, certifications… Notre comparateur vous aide à sélectionner le bon modèle pour votre activité.</p>
+          <a class="btn btn-primary" href="#cta" data-i18n="comparator.cta">Accéder au comparateur</a>
         </div>
         <div class="col-lg-6">
           <div class="table-responsive rounded-3 shadow-sm bg-white">
             <table class="table align-middle mb-0">
               <thead class="table-light">
                 <tr>
-                  <th>Modèle</th>
-                  <th>Type</th>
-                  <th>Poids</th>
-                  <th>Autonomie</th>
-                  <th>Charge</th>
+                  <th data-i18n="comparator.table.model">Modèle</th>
+                  <th data-i18n="comparator.table.type">Type</th>
+                  <th data-i18n="comparator.table.weight">Poids</th>
+                  <th data-i18n="comparator.table.autonomy">Autonomie</th>
+                  <th data-i18n="comparator.table.charge">Charge</th>
                 </tr>
               </thead>
               <tbody>
@@ -194,7 +199,7 @@ $guides = $guidesStmt->fetchAll();
               </tbody>
             </table>
           </div>
-          <small class="text-muted d-block mt-2">*Données indicatives, variables selon configuration.</small>
+          <small class="text-muted d-block mt-2" data-i18n="comparator.note">*Données indicatives, variables selon configuration.</small>
         </div>
       </div>
     </div>
@@ -204,8 +209,8 @@ $guides = $guidesStmt->fetchAll();
   <section id="guides" class="py-5">
     <div class="container">
       <div class="d-flex align-items-center justify-content-between mb-4">
-        <h2 class="h3 mb-0">Guides & cas d’usage</h2>
-        <a href="#" class="link-primary">Voir tous les articles →</a>
+        <h2 class="h3 mb-0" data-i18n="guides.title">Guides & cas d’usage</h2>
+        <a href="#" class="link-primary" data-i18n="guides.link">Voir tous les articles →</a>
       </div>
       <div class="row g-4">
         <?php foreach ($guides as $guide): ?>
@@ -231,11 +236,11 @@ $guides = $guidesStmt->fetchAll();
     <div class="container">
       <div class="row align-items-center g-3">
         <div class="col-lg-8">
-          <h2 class="h4 mb-1">Un besoin précis ? Parlons-en.</h2>
-          <p class="mb-0 opacity-75">Nos équipes vous orientent vers les bons modèles et vous accompagnent dans votre projet.</p>
+          <h2 class="h4 mb-1" data-i18n="cta.title">Un besoin précis ? Parlons-en.</h2>
+          <p class="mb-0 opacity-75" data-i18n="cta.desc">Nos équipes vous orientent vers les bons modèles et vous accompagnent dans votre projet.</p>
         </div>
         <div class="col-lg-4 text-lg-end">
-          <a href="#contact" class="btn btn-outline-light btn-lg">Être recontacté</a>
+          <a href="#contact" class="btn btn-outline-light btn-lg" data-i18n="cta.button">Être recontacté</a>
         </div>
       </div>
     </div>
@@ -250,43 +255,43 @@ $guides = $guidesStmt->fetchAll();
             <img src="assets/img/logo.png" alt="Exoleton" width="136" height="50" class="me-2">
             <!--<strong>Movalya</strong>-->
           </div>
-          <p class="text-white-50">Site d’exosquelettes et technologies d’assistance. Notre mission : rendre la mobilité augmentée accessible à tous.</p>
+          <p class="text-white-50" data-i18n="footer.mission">Site d’exosquelettes et technologies d’assistance. Notre mission : rendre la mobilité augmentée accessible à tous.</p>
         </div>
         <div class="col-6 col-md-2">
-          <h3 class="h6">Navigation</h3>
+          <h3 class="h6" data-i18n="footer.navigation">Navigation</h3>
           <ul class="list-unstyled">
-            <li><a class="footer-link" href="index.php">Accueil</a></li>
-            <li><a class="footer-link" href="#produits">Produits</a></li>
-            <li><a class="footer-link" href="#comparateur">Comparateur</a></li>
-            <li><a class="footer-link" href="#guides">Guides</a></li>
-            <li><a class="footer-link" href="recherche.php">Recherche</a></li>
+            <li><a class="footer-link" href="index.php" data-i18n="nav.home">Accueil</a></li>
+            <li><a class="footer-link" href="#produits" data-i18n="nav.products">Produits</a></li>
+            <li><a class="footer-link" href="#comparateur" data-i18n="nav.comparator">Comparateur</a></li>
+            <li><a class="footer-link" href="#guides" data-i18n="nav.guides">Guides</a></li>
+            <li><a class="footer-link" href="recherche.php" data-i18n="nav.search">Recherche</a></li>
           </ul>
         </div>
         <div class="col-6 col-md-3">
-          <h3 class="h6">Ressources</h3>
+          <h3 class="h6" data-i18n="footer.resources">Ressources</h3>
           <ul class="list-unstyled">
-            <li><a class="footer-link" href="#">FAQ</a></li>
-            <li><a class="footer-link" href="#">Support</a></li>
-            <li><a class="footer-link" href="#">Mentions légales</a></li>
-            <li><a class="footer-link" href="#">Politique de confidentialité</a></li>
+            <li><a class="footer-link" href="#" data-i18n="footer.faq">FAQ</a></li>
+            <li><a class="footer-link" href="#" data-i18n="footer.support">Support</a></li>
+            <li><a class="footer-link" href="#" data-i18n="footer.legal">Mentions légales</a></li>
+            <li><a class="footer-link" href="#" data-i18n="footer.privacy">Politique de confidentialité</a></li>
             <li>
               <button type="button" class="footer-link btn btn-link p-0 text-start" data-bs-toggle="modal" data-bs-target="#cookieSettingsModal">
-                Gérer les cookies
+                <span data-i18n="footer.cookies">Gérer les cookies</span>
               </button>
             </li>
           </ul>
         </div>
         <div class="col-md-3">
-          <h3 class="h6">Newsletter</h3>
+          <h3 class="h6" data-i18n="footer.newsletter">Newsletter</h3>
           <form class="d-flex gap-2" action="#" method="post" onsubmit="return false;">
-            <input type="email" class="form-control" placeholder="Votre email" aria-label="Votre email">
-            <button class="btn btn-success">S’inscrire</button>
+            <input type="email" class="form-control" placeholder="Votre email" aria-label="Votre email" data-i18n-placeholder="footer.email">
+            <button class="btn btn-success" data-i18n="footer.subscribe">S’inscrire</button>
           </form>
         </div>
       </div>
       <hr class="border-secondary my-4">
       <div class="d-flex flex-column flex-md-row justify-content-between align-items-center pb-4">
-        <small class="text-white-50">© <span id="year"></span> Exoleton. Tous droits réservés.</small>
+        <small class="text-white-50" data-i18n="footer.rights" data-i18n-html="true">© <span id="year"></span> Exoleton. Tous droits réservés.</small>
         <div class="d-flex gap-3 mt-3 mt-md-0">
           <a class="footer-link" href="#" aria-label="Twitter">Twitter</a>
           <a class="footer-link" href="#" aria-label="LinkedIn">LinkedIn</a>
@@ -299,16 +304,16 @@ $guides = $guidesStmt->fetchAll();
   <!-- COOKIE CONSENT -->
   <div id="cookieBanner" class="cookie-banner shadow-lg" role="dialog" aria-live="polite" aria-label="Bannière de consentement aux cookies" hidden>
     <div class="cookie-banner__content">
-      <h2 class="h5 mb-2">Nous utilisons des cookies</h2>
-      <p class="mb-0 small text-muted">
+      <h2 class="h5 mb-2" data-i18n="cookie.bannerTitle">Nous utilisons des cookies</h2>
+      <p class="mb-0 small text-muted" data-i18n="cookie.bannerText">
         Certains cookies sont essentiels au bon fonctionnement du site. Nous utilisons également des cookies optionnels pour mesurer l’audience et améliorer votre expérience.
       </p>
     </div>
     <div class="cookie-banner__actions">
-      <button type="button" class="btn btn-primary" id="cookieAcceptAll">Tout accepter</button>
-      <button type="button" class="btn btn-outline-secondary" id="cookieRejectAll">Tout refuser</button>
+      <button type="button" class="btn btn-primary" id="cookieAcceptAll" data-i18n="cookie.accept">Tout accepter</button>
+      <button type="button" class="btn btn-outline-secondary" id="cookieRejectAll" data-i18n="cookie.reject">Tout refuser</button>
       <button type="button" class="btn btn-link text-decoration-none" id="cookieCustomize" data-bs-toggle="modal" data-bs-target="#cookieSettingsModal">
-        Personnaliser
+        <span data-i18n="cookie.customize">Personnaliser</span>
       </button>
     </div>
   </div>
@@ -317,36 +322,36 @@ $guides = $guidesStmt->fetchAll();
     <div class="modal-dialog modal-dialog-centered">
       <div class="modal-content">
         <div class="modal-header">
-          <h2 class="modal-title h5 mb-0" id="cookieSettingsTitle">Préférences de cookies</h2>
-          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fermer"></button>
+          <h2 class="modal-title h5 mb-0" id="cookieSettingsTitle" data-i18n="cookie.modalTitle">Préférences de cookies</h2>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fermer" data-i18n-aria-label="cookie.close"></button>
         </div>
         <div class="modal-body">
-          <p class="small text-muted">Modifiez ci-dessous vos préférences. Les cookies nécessaires sont toujours actifs afin de garantir la sécurité et le fonctionnement du site.</p>
+          <p class="small text-muted" data-i18n="cookie.modalIntro">Modifiez ci-dessous vos préférences. Les cookies nécessaires sont toujours actifs afin de garantir la sécurité et le fonctionnement du site.</p>
           <div class="form-check form-switch mb-3">
             <input class="form-check-input" type="checkbox" id="cookieNecessary" checked disabled>
             <label class="form-check-label" for="cookieNecessary">
-              Cookies nécessaires
-              <span class="d-block text-muted small">Indispensables pour la sécurité, l’accessibilité et la mémorisation de vos choix.</span>
+              <span data-i18n="cookie.necessary">Cookies nécessaires</span>
+              <span class="d-block text-muted small" data-i18n="cookie.necessaryDesc">Indispensables pour la sécurité, l’accessibilité et la mémorisation de vos choix.</span>
             </label>
           </div>
           <div class="form-check form-switch mb-3">
             <input class="form-check-input" type="checkbox" id="cookieAnalytics">
             <label class="form-check-label" for="cookieAnalytics">
-              Cookies de mesure d’audience
-              <span class="d-block text-muted small">Nous aident à comprendre comment le site est utilisé pour l’améliorer.</span>
+              <span data-i18n="cookie.analytics">Cookies de mesure d’audience</span>
+              <span class="d-block text-muted small" data-i18n="cookie.analyticsDesc">Nous aident à comprendre comment le site est utilisé pour l’améliorer.</span>
             </label>
           </div>
           <div class="form-check form-switch">
             <input class="form-check-input" type="checkbox" id="cookieMarketing">
             <label class="form-check-label" for="cookieMarketing">
-              Cookies marketing
-              <span class="d-block text-muted small">Permettent de personnaliser la communication et les offres.</span>
+              <span data-i18n="cookie.marketing">Cookies marketing</span>
+              <span class="d-block text-muted small" data-i18n="cookie.marketingDesc">Permettent de personnaliser la communication et les offres.</span>
             </label>
           </div>
         </div>
         <div class="modal-footer">
-          <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Annuler</button>
-          <button type="button" class="btn btn-primary" id="cookieSavePreferences">Enregistrer</button>
+          <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal" data-i18n="cookie.cancel">Annuler</button>
+          <button type="button" class="btn btn-primary" id="cookieSavePreferences" data-i18n="cookie.save">Enregistrer</button>
         </div>
       </div>
     </div>
@@ -355,5 +360,6 @@ $guides = $guidesStmt->fetchAll();
   <!-- Scripts -->
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
   <script src="assets/js/main.js"></script>
+  <script src="assets/js/i18n.js"></script>
 </body>
 </html>
