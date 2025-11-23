@@ -13,6 +13,9 @@ $products = $productsStmt->fetchAll();
 $guidesStmt = $pdo->query("SELECT title, summary, image FROM guides ORDER BY published_at DESC, id DESC LIMIT 3");
 $guides = $guidesStmt->fetchAll();
 
+$announcementsStmt = $pdo->query("SELECT fa.title, fa.message, fa.link_url, fa.priority, p.slug, p.name AS product_name FROM featured_announcements fa LEFT JOIN products p ON p.id = fa.product_id WHERE fa.is_active = 1 AND (fa.start_at IS NULL OR fa.start_at <= NOW()) AND (fa.end_at IS NULL OR fa.end_at >= NOW()) ORDER BY fa.priority DESC, fa.start_at DESC, fa.id DESC LIMIT 3");
+$announcements = $announcementsStmt->fetchAll();
+
 $currentUser = current_user($pdo);
 ?>
 <!doctype html>
@@ -161,6 +164,29 @@ $currentUser = current_user($pdo);
         <h2 class="h3 mb-0" data-i18n="selection.title">Sélection du moment</h2>
         <a href="#comparateur" class="link-primary" data-i18n="selection.link">Comparer les modèles →</a>
       </div>
+
+      <?php if (!empty($announcements)): ?>
+        <div class="row g-3 mb-3">
+          <?php foreach ($announcements as $announcement): ?>
+            <div class="col-md-4">
+              <div class="alert alert-primary h-100 shadow-sm mb-0">
+                <div class="d-flex align-items-start justify-content-between">
+                  <div>
+                    <h3 class="h6 mb-1"><?= htmlspecialchars($announcement['title']) ?></h3>
+                    <p class="mb-2 small text-muted"><?= htmlspecialchars($announcement['message'] ?? '') ?></p>
+                  </div>
+                  <span class="badge bg-primary-subtle text-primary">Mise en avant</span>
+                </div>
+                <?php if (!empty($announcement['link_url'])): ?>
+                  <a class="btn btn-sm btn-primary" href="<?= htmlspecialchars($announcement['link_url']) ?>" target="_blank" rel="noopener">Découvrir</a>
+                <?php elseif (!empty($announcement['slug'])): ?>
+                  <a class="btn btn-sm btn-outline-primary" href="detail.php?slug=<?= urlencode($announcement['slug']) ?>">Voir le produit</a>
+                <?php endif; ?>
+              </div>
+            </div>
+          <?php endforeach; ?>
+        </div>
+      <?php endif; ?>
 
       <div class="row g-4">
         <?php foreach ($products as $product): ?>
