@@ -18,6 +18,30 @@
 
   const cache = {};
 
+  function getLanguageFromPath(){
+    const segments = window.location.pathname.split('/').filter(Boolean);
+    if (segments.length && SUPPORTED_LANGS.includes(segments[0])) {
+      return segments[0];
+    }
+    return null;
+  }
+
+  function updateUrlLanguage(lang){
+    if (!window.history || typeof window.history.replaceState !== 'function') return;
+    const segments = window.location.pathname.split('/').filter(Boolean);
+    if (segments.length && SUPPORTED_LANGS.includes(segments[0])) {
+      segments.shift();
+    }
+    if (segments[0] !== lang) {
+      segments.unshift(lang);
+    }
+    const newPath = '/' + segments.join('/') + (window.location.pathname.endsWith('/') ? '/' : '');
+    const newUrl = newPath + window.location.search + window.location.hash;
+    if (newUrl !== window.location.pathname + window.location.search + window.location.hash) {
+      window.history.replaceState({}, '', newUrl);
+    }
+  }
+
   function resolveKey(obj, path){
     return path.split('.').reduce((acc, part) => (acc && typeof acc === 'object') ? acc[part] : undefined, obj);
   }
@@ -102,7 +126,7 @@
 
   async function fetchTranslation(lang){
     if (cache[lang]) return cache[lang];
-    const response = await fetch(`assets/lang/${lang}.json`);
+    const response = await fetch(`/assets/lang/${lang}.json`);
     if (!response.ok) throw new Error('Cannot load lang');
     const data = await response.json();
     cache[lang] = data;
@@ -110,6 +134,8 @@
   }
 
   function detectLanguage(){
+    const pathLang = getLanguageFromPath();
+    if (pathLang) return pathLang;
     const stored = localStorage.getItem(LANG_KEY);
     if (stored && SUPPORTED_LANGS.includes(stored)) return stored;
     const browser = (navigator.language || navigator.userLanguage || 'fr').slice(0,2).toLowerCase();
@@ -122,6 +148,7 @@
     if (!SUPPORTED_LANGS.includes(lang)) lang = 'fr';
     currentLang = lang;
     localStorage.setItem(LANG_KEY, lang);
+    updateUrlLanguage(lang);
     populateSelectors(lang);
     try {
       const base = await fetchTranslation('fr');
