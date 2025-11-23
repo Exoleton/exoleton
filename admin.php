@@ -424,29 +424,27 @@ $announcements = $announcementsStmt->fetchAll();
                       </div>
 
                       <div class="col-xl-5">
-                        <button type="button" class="card shadow-sm border-0 mb-3 text-start w-100" data-bs-toggle="modal" data-bs-target="#modalAddSupplier">
+                        <div class="card shadow-sm border-0 mb-3">
                           <div class="card-body d-flex align-items-center justify-content-between">
                             <div>
                               <h2 class="h6 mb-1">Ajouter un fournisseur</h2>
                               <p class="text-muted small mb-0">Création rapide d’une fiche fournisseur avec contact et statut dropshipping.</p>
                             </div>
-                            <span class="btn btn-primary btn-sm d-inline-flex align-items-center gap-2" aria-hidden="true">
+                            <button class="btn btn-primary btn-sm rounded-circle" type="button" data-bs-toggle="modal" data-bs-target="#modalAddSupplier" aria-label="Ouvrir le formulaire d'ajout de fournisseur">
                               <i class="fa-solid fa-user-plus"></i>
-                              <span class="fw-semibold">Modal</span>
-                            </span>
+                            </button>
                           </div>
                         </button>
 
-                        <button type="button" class="card shadow-sm border-0 text-start w-100" data-bs-toggle="modal" data-bs-target="#modalLinkSupplier">
+                        <div class="card shadow-sm border-0">
                           <div class="card-body d-flex align-items-center justify-content-between">
                             <div>
                               <h2 class="h6 mb-1">Lier un produit à un fournisseur</h2>
                               <p class="text-muted small mb-0">Associer un produit existant à un fournisseur.</p>
                             </div>
-                            <span class="btn btn-outline-primary btn-sm d-inline-flex align-items-center gap-2" aria-hidden="true">
+                            <button class="btn btn-outline-primary btn-sm rounded-circle" type="button" data-bs-toggle="modal" data-bs-target="#modalLinkSupplier" aria-label="Ouvrir le formulaire de liaison produit/fournisseur">
                               <i class="fa-solid fa-link"></i>
-                              <span class="fw-semibold">Modal</span>
-                            </span>
+                            </button>
                           </div>
                         </button>
                       </div>
@@ -628,9 +626,8 @@ $announcements = $announcementsStmt->fetchAll();
                                 <h2 class="h5 mb-1">Annonces "Sélection du moment"</h2>
                                 <p class="text-muted small mb-0">Définissez les messages et produits à mettre en avant sur la page d’accueil.</p>
                               </div>
-                              <button class="btn btn-primary btn-sm d-inline-flex align-items-center gap-2" type="button" data-bs-toggle="modal" data-bs-target="#modalAnnouncements" aria-label="Ouvrir la gestion des annonces">
+                              <button class="btn btn-primary btn-sm rounded-circle" type="button" data-bs-toggle="modal" data-bs-target="#modalAnnouncements" aria-label="Ouvrir la gestion des annonces">
                                 <i class="fa-solid fa-bullhorn"></i>
-                                <span class="fw-semibold">Ouvrir le modal</span>
                               </button>
                             </div>
                             <p class="text-muted small mt-3 mb-0">Cliquez sur l’icône pour accéder aux formulaires de création et au tableau des annonces.</p>
