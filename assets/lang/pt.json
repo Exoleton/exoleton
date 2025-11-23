@@ -189,5 +189,8 @@
     "sortHigh": "Preço: do mais alto ao mais baixo",
     "noResults": "<strong>Nenhum resultado</strong> para a sua pesquisa. Tente outros termos ou contacte nossa equipa para um apoio personalizado.",
     "contact": "Ser contactado"
+  },
+  "auth": {
+    "passwordHint": "As suas senhas são armazenadas de forma segura e permanecem confidenciais."
   }
 }

@@ -189,5 +189,8 @@
     "sortHigh": "价格从高到低",
     "noResults": "<strong>没有找到结果。</strong>请尝试其他关键词，或联系我们的团队获取个性化支持。",
     "contact": "获取联系"
+  },
+  "auth": {
+    "passwordHint": "您的密码会被安全地保存，并保持机密。"
   }
 }
