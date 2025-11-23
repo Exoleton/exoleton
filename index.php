@@ -55,7 +55,12 @@
           </li>
           <li class="nav-item"><a class="nav-link" href="#comparateur">Comparateur</a></li>
           <li class="nav-item"><a class="nav-link" href="#guides">Guides</a></li>
-          <li class="nav-item"><a class="nav-link" href="recherche.php">Recherche</a></li>
+          <li class="nav-item">
+            <a class="nav-link nav-search-highlight d-flex align-items-center gap-1" href="recherche.php">
+              <span>Recherche</span>
+              <span class="search-icon" aria-hidden="true">🔍</span>
+            </a>
+          </li>
           <li class="nav-item ms-lg-3">
             <a class="btn btn-primary" href="#cta">Découvrir les solutions</a>
           </li>
