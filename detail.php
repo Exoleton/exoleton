@@ -108,6 +108,10 @@ $alternatives = $alternativesStmt->fetchAll();
       </button>
       <nav id="mainNav" class="collapse navbar-collapse">
         <div class="d-lg-flex align-items-lg-center w-100 gap-3">
+          <ul class="navbar-nav align-items-lg-center mb-2 mb-lg-0 me-lg-3">
+            <li class="nav-item"><a class="nav-link fw-semibold" href="index.php" data-i18n="nav.home">Accueil</a></li>
+            <li class="nav-item"><a class="nav-link" href="index.php#guides" data-i18n="nav.guides">Guides</a></li>
+          </ul>
           <form class="nav-search flex-grow-1 my-3 my-lg-0" method="get" action="recherche.php" role="search">
             <label class="visually-hidden" for="navSearchQuery">Rechercher</label>
             <div class="input-group nav-search-combobox">
@@ -124,18 +128,6 @@ $alternatives = $alternativesStmt->fetchAll();
           </form>
 
           <ul class="navbar-nav ms-lg-auto mb-2 mb-lg-0 align-items-lg-center">
-            <li class="nav-item"><a class="nav-link" href="index.php" data-i18n="nav.home">Accueil</a></li>
-            <li class="nav-item dropdown">
-              <a class="nav-link dropdown-toggle active" href="#produits" id="produitsMenu" role="button" data-bs-toggle="dropdown" aria-expanded="false" data-i18n="nav.products">Produits</a>
-              <ul class="dropdown-menu" aria-labelledby="produitsMenu">
-                <li><a class="dropdown-item" href="index.php#produits" data-i18n="nav.industrial">Industriel</a></li>
-                <li><a class="dropdown-item" href="index.php#produits" data-i18n="nav.medical">Médical / Rééducation</a></li>
-                <li><a class="dropdown-item" href="index.php#produits" data-i18n="nav.consumer">Particulier / Quotidien</a></li>
-                <li><a class="dropdown-item" href="index.php#produits" data-i18n="nav.care">Collectivités / Soins</a></li>
-              </ul>
-            </li>
-            <li class="nav-item"><a class="nav-link" href="index.php#comparateur" data-i18n="nav.comparator">Comparateur</a></li>
-            <li class="nav-item"><a class="nav-link" href="index.php#guides" data-i18n="nav.guides">Guides</a></li>
             <li class="nav-item ms-lg-3">
               <a class="btn btn-primary" href="#demo" data-i18n="nav.demo">Demander une démo</a>
             </li>
@@ -174,7 +166,6 @@ $alternatives = $alternativesStmt->fetchAll();
     <nav class="container" aria-label="breadcrumb">
       <ol class="breadcrumb small mb-2">
         <li class="breadcrumb-item"><a href="index.php" data-i18n="nav.home">Accueil</a></li>
-        <li class="breadcrumb-item"><a href="index.php#produits" data-i18n="nav.products">Produits</a></li>
         <li class="breadcrumb-item active" aria-current="page"><?= htmlspecialchars($product['name']) ?></li>
       </ol>
     </nav>
@@ -497,8 +488,6 @@ $alternatives = $alternativesStmt->fetchAll();
           <h3 class="h6" data-i18n="footer.navigation">Navigation</h3>
           <ul class="list-unstyled">
             <li><a class="footer-link" href="index.php" data-i18n="nav.home">Accueil</a></li>
-            <li><a class="footer-link" href="index.php#produits" data-i18n="nav.products">Produits</a></li>
-            <li><a class="footer-link" href="index.php#comparateur" data-i18n="nav.comparator">Comparateur</a></li>
             <li><a class="footer-link" href="index.php#guides" data-i18n="nav.guides">Guides</a></li>
           </ul>
         </div>

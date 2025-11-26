@@ -251,8 +251,6 @@ $algoInfo = preferred_password_algorithm();
           <h3 class="h6" data-i18n="footer.navigation">Navigation</h3>
           <ul class="list-unstyled">
             <li><a class="footer-link" href="index.php" data-i18n="nav.home">Accueil</a></li>
-            <li><a class="footer-link" href="#" data-i18n="nav.products">Produits</a></li>
-            <li><a class="footer-link" href="#" data-i18n="nav.comparator">Comparateur</a></li>
             <li><a class="footer-link" href="#" data-i18n="nav.guides">Guides</a></li>
             <li><a class="footer-link" href="recherche.php" data-i18n="nav.search">Recherche</a></li>
           </ul>
