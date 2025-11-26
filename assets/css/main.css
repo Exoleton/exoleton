@@ -86,7 +86,7 @@ section[id] { scroll-margin-top: 84px; }  /* offset propre pour les ancres (#pro
 }
 .nav-search .nav-search-input input:focus{ outline:none; box-shadow:none; }
 .nav-search .nav-search-btn{
-  background:#febd69;
+  background:#0066c0;
   border:0;
   min-width:56px;
   display:flex;
@@ -96,7 +96,7 @@ section[id] { scroll-margin-top: 84px; }  /* offset propre pour les ancres (#pro
   padding:0 1.1rem;
   transition:background-color .15s ease;
 }
-.nav-search .nav-search-btn:hover{ background:#f3a847; }
+.nav-search .nav-search-btn:hover{ background:#00529a; }
 .nav-search .nav-search-btn svg{
   width:20px;
   height:20px;
