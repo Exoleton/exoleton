@@ -142,6 +142,10 @@ foreach ($guides as $guide) {
       </button>
       <nav id="mainNav" class="collapse navbar-collapse">
         <div class="d-lg-flex align-items-lg-center w-100 gap-3">
+          <ul class="navbar-nav align-items-lg-center mb-2 mb-lg-0 me-lg-3">
+            <li class="nav-item"><a class="nav-link fw-semibold" href="index.php" data-i18n="nav.home">Accueil</a></li>
+            <li class="nav-item"><a class="nav-link" href="index.php#guides" data-i18n="nav.guides">Guides</a></li>
+          </ul>
           <form class="nav-search flex-grow-1 my-3 my-lg-0" method="get" action="recherche.php" role="search">
             <label class="visually-hidden" for="navSearchQuery">Rechercher</label>
             <div class="input-group nav-search-combobox">
@@ -158,10 +162,6 @@ foreach ($guides as $guide) {
           </form>
 
           <ul class="navbar-nav ms-lg-auto mb-2 mb-lg-0 align-items-lg-center">
-            <li class="nav-item"><a class="nav-link" href="index.php" data-i18n="nav.home">Accueil</a></li>
-            <li class="nav-item"><a class="nav-link" href="index.php#produits" data-i18n="nav.products">Produits</a></li>
-            <li class="nav-item"><a class="nav-link" href="index.php#comparateur" data-i18n="nav.comparator">Comparateur</a></li>
-            <li class="nav-item"><a class="nav-link" href="index.php#guides" data-i18n="nav.guides">Guides</a></li>
             <li class="nav-item ms-lg-3">
               <a class="nav-link" href="index.php#cta" data-i18n="nav.cta">Découvrir les solutions</a>
             </li>
@@ -302,8 +302,6 @@ foreach ($guides as $guide) {
           <h3 class="h6" data-i18n="footer.navigation">Navigation</h3>
           <ul class="list-unstyled">
             <li><a class="footer-link" href="index.php" data-i18n="nav.home">Accueil</a></li>
-            <li><a class="footer-link" href="index.php#produits" data-i18n="nav.products">Produits</a></li>
-            <li><a class="footer-link" href="index.php#comparateur" data-i18n="nav.comparator">Comparateur</a></li>
             <li><a class="footer-link" href="index.php#guides" data-i18n="nav.guides">Guides</a></li>
             <li><a class="footer-link" href="recherche.php" data-i18n="nav.search">Recherche</a></li>
           </ul>
