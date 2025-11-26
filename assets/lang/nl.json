@@ -1,18 +1,18 @@
 {
   "lang": {
     "label": "Taal",
-    "fr": "Frans (FR)",
-    "en": "Engels (EN)",
-    "de": "Duits (DE)",
-    "it": "Italiaans (IT)",
-    "es": "Spaans (ES)",
-    "pt": "Portugees (PT)",
-    "nl": "Nederlands (NL)",
-    "pl": "Pools (PL)",
-    "jp": "Japans (JP)",
-    "zh": "Vereenvoudigd Chinees (ZH)",
-    "kr": "Koreaans (KR)",
-    "ru": "Russisch (RU)"
+    "fr": "Frans 🇫🇷",
+    "en": "Engels 🇬🇧",
+    "de": "Duits 🇩🇪",
+    "it": "Italiaans 🇮🇹",
+    "es": "Spaans 🇪🇸",
+    "pt": "Portugees 🇵🇹",
+    "nl": "Nederlands 🇳🇱",
+    "pl": "Pools 🇵🇱",
+    "jp": "Japans 🇯🇵",
+    "zh": "Vereenvoudigd Chinees 🇨🇳",
+    "kr": "Koreaans 🇰🇷",
+    "ru": "Russisch 🇷🇺"
   },
   "meta": {
     "title": "Exoleton – Exoskeletten en ondersteunende technologieën",

@@ -1,18 +1,18 @@
 {
   "lang": {
     "label": "Idioma",
-    "fr": "Francês (FR)",
-    "en": "Inglês (EN)",
-    "de": "Alemão (DE)",
-    "it": "Italiano (IT)",
-    "es": "Espanhol (ES)",
-    "pt": "Português (PT)",
-    "nl": "Holandês (NL)",
-    "pl": "Polonês (PL)",
-    "jp": "Japonês (JP)",
-    "zh": "Chinês simplificado (ZH)",
-    "kr": "Coreano (KR)",
-    "ru": "Russo (RU)"
+    "fr": "Francês 🇫🇷",
+    "en": "Inglês 🇬🇧",
+    "de": "Alemão 🇩🇪",
+    "it": "Italiano 🇮🇹",
+    "es": "Espanhol 🇪🇸",
+    "pt": "Português 🇵🇹",
+    "nl": "Holandês 🇳🇱",
+    "pl": "Polonês 🇵🇱",
+    "jp": "Japonês 🇯🇵",
+    "zh": "Chinês simplificado 🇨🇳",
+    "kr": "Coreano 🇰🇷",
+    "ru": "Russo 🇷🇺"
   },
   "meta": {
     "title": "Exoleton – Exoesqueletos e tecnologias assistivas",
