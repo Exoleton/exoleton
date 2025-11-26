@@ -77,17 +77,26 @@ $navCategoryOptions = [
             <li class="nav-item"><a class="nav-link" href="#guides" data-i18n="nav.guides">Guides</a></li>
           </ul>
           <form class="nav-search flex-grow-1 my-3 my-lg-0" method="get" action="recherche.php" role="search">
-            <label class="visually-hidden" for="navSearchQuery">Rechercher</label>
-            <div class="input-group nav-search-combobox">
-              <label class="visually-hidden" for="navSearchCategory">Catégorie</label>
-              <select id="navSearchCategory" name="cat" class="form-select bg-light-subtle border-end-0">
-                <?php foreach ($navCategoryOptions as $value => $label): ?>
-                  <option value="<?= htmlspecialchars($value, ENT_QUOTES, 'UTF-8'); ?>"><?= htmlspecialchars($label, ENT_QUOTES, 'UTF-8'); ?></option>
-                <?php endforeach; ?>
-              </select>
-              <span class="input-group-text bg-transparent border-start-0 border-end-0 px-3" aria-hidden="true">🔍</span>
-              <input id="navSearchQuery" name="q" type="search" class="form-control border-start-0 border-end-0" placeholder="Exosquelette industriel, aide à la marche…" data-i18n-placeholder="search.placeholder">
-              <button class="btn btn-primary" type="submit" data-i18n="search.cta">Rechercher</button>
+            <div class="nav-search-bar" role="group" aria-label="Recherche">
+              <div class="nav-search-select-wrap">
+                <label class="visually-hidden" for="navSearchCategory">Catégorie</label>
+                <select id="navSearchCategory" name="cat" class="form-select nav-search-select">
+                  <?php foreach ($navCategoryOptions as $value => $label): ?>
+                    <option value="<?= htmlspecialchars($value, ENT_QUOTES, 'UTF-8'); ?>"><?= htmlspecialchars($label, ENT_QUOTES, 'UTF-8'); ?></option>
+                  <?php endforeach; ?>
+                </select>
+                <span class="nav-search-caret" aria-hidden="true">▾</span>
+              </div>
+              <div class="nav-search-input">
+                <label class="visually-hidden" for="navSearchQuery">Rechercher</label>
+                <input id="navSearchQuery" name="q" type="search" class="form-control" placeholder="Exosquelette industriel, aide à la marche…" data-i18n-placeholder="search.placeholder">
+              </div>
+              <button class="nav-search-btn" type="submit" aria-label="Rechercher">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" role="img" aria-hidden="true" focusable="false">
+                  <path fill="currentColor" d="M15.5 14h-.79l-.28-.27a6.5 6.5 0 1 0-.71.71l.27.28v.79l4.25 4.25a1 1 0 0 0 1.42-1.42L15.5 14Zm-6 0a5 5 0 1 1 0-10a5 5 0 0 1 0 10Z"/>
+                </svg>
+                <span class="visually-hidden" data-i18n="search.cta">Rechercher</span>
+              </button>
             </div>
           </form>
 
