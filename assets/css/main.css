@@ -146,6 +146,19 @@ footer .footer-link.btn-link:focus-visible{
 .search-page .search-box .form-control:focus{
   box-shadow:0 0 0 .25rem rgba(30,136,229,.2);
 }
+.search-page .search-combobox .form-select{
+  max-width:220px;
+  min-width:180px;
+  border-top-right-radius:0;
+  border-bottom-right-radius:0;
+}
+.search-page .search-combobox .form-control{
+  border-radius:0;
+}
+.search-page .search-combobox .btn{
+  border-top-left-radius:0;
+  border-bottom-left-radius:0;
+}
 .search-page .badge.text-bg-light{
   background-color:#f4f7fb;
   color:#0f172a;
