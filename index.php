@@ -82,7 +82,7 @@ $currentUser = current_user($pdo);
             </a>
           </li>
           <li class="nav-item ms-lg-3">
-            <a class="btn btn-primary" href="#cta" data-i18n="nav.cta">Découvrir les solutions</a>
+            <a class="nav-link" href="#cta" data-i18n="nav.cta">Découvrir les solutions</a>
           </li>
           <li class="nav-item ms-lg-3">
             <label class="visually-hidden" for="languageSwitcher" data-i18n="lang.label">Langue</label>
