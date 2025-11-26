@@ -19,12 +19,12 @@ $announcements = $announcementsStmt->fetchAll();
 $currentUser = current_user($pdo);
 
 $navCategoryOptions = [
-  '' => 'Toutes les catégories',
-  'Industriel' => 'Industriel',
-  'Médical' => 'Médical',
-  'Particulier / Quotidien' => 'Particulier / Quotidien',
-  'Collectivités / Soins' => 'Collectivités / Soins',
-  'Guides & ressources' => 'Guides & ressources',
+  '' => 'All categories',
+  'Industriel' => 'Industrial',
+  'Médical' => 'Medical',
+  'Particulier / Quotidien' => 'Personal / Daily',
+  'Collectivités / Soins' => 'Communities / Care',
+  'Guides & ressources' => 'Guides & resources',
 ];
 ?>
 <!doctype html>
@@ -77,9 +77,9 @@ $navCategoryOptions = [
             <li class="nav-item"><a class="nav-link" href="#guides" data-i18n="nav.guides">Guides</a></li>
           </ul>
           <form class="nav-search flex-grow-1 my-3 my-lg-0" method="get" action="recherche.php" role="search">
-            <div class="nav-search-bar" role="group" aria-label="Recherche">
+            <div class="nav-search-bar" role="group" aria-label="Search">
               <div class="nav-search-select-wrap">
-                <label class="visually-hidden" for="navSearchCategory">Catégorie</label>
+                <label class="visually-hidden" for="navSearchCategory">Category</label>
                 <select id="navSearchCategory" name="cat" class="form-select nav-search-select">
                   <?php foreach ($navCategoryOptions as $value => $label): ?>
                     <option value="<?= htmlspecialchars($value, ENT_QUOTES, 'UTF-8'); ?>"><?= htmlspecialchars($label, ENT_QUOTES, 'UTF-8'); ?></option>
@@ -88,14 +88,14 @@ $navCategoryOptions = [
                 <span class="nav-search-caret" aria-hidden="true">▾</span>
               </div>
               <div class="nav-search-input">
-                <label class="visually-hidden" for="navSearchQuery">Rechercher</label>
-                <input id="navSearchQuery" name="q" type="search" class="form-control" placeholder="Exosquelette industriel, aide à la marche…" data-i18n-placeholder="search.placeholder">
+                <label class="visually-hidden" for="navSearchQuery">Search</label>
+                <input id="navSearchQuery" name="q" type="search" class="form-control" placeholder="Industrial exoskeleton, walking aid…" data-i18n-placeholder="search.placeholder">
               </div>
-              <button class="nav-search-btn" type="submit" aria-label="Rechercher">
+              <button class="nav-search-btn" type="submit" aria-label="Search">
                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" role="img" aria-hidden="true" focusable="false">
                   <path fill="currentColor" d="M15.5 14h-.79l-.28-.27a6.5 6.5 0 1 0-.71.71l.27.28v.79l4.25 4.25a1 1 0 0 0 1.42-1.42L15.5 14Zm-6 0a5 5 0 1 1 0-10a5 5 0 0 1 0 10Z"/>
                 </svg>
-                <span class="visually-hidden" data-i18n="search.cta">Rechercher</span>
+                <span class="visually-hidden" data-i18n="search.cta">Search</span>
               </button>
             </div>
           </form>
