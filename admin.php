@@ -18,12 +18,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
   try {
     switch ($action) {
       case 'add_product':
-        $stmt = $pdo->prepare('INSERT INTO products (slug, name, category, tag, price, currency, summary, type, featured_order) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)');
+        $categorySlug = trim($_POST['category_slug'] ?? '');
+        $categoryMeta = $categorySlug ? find_category_by_slug($pdo, $categorySlug) : null;
+        $categoryLabel = $categoryMeta ? category_label_for_lang($categoryMeta, 'fr') : trim($_POST['category'] ?? '');
+        $tag = trim($_POST['tag'] ?? '') ?: $categoryLabel;
+
+        $stmt = $pdo->prepare('INSERT INTO products (slug, name, category, category_slug, tag, price, currency, summary, type, featured_order) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)');
         $stmt->execute([
           trim($_POST['slug'] ?? ''),
           trim($_POST['name'] ?? ''),
-          trim($_POST['category'] ?? ''),
-          trim($_POST['tag'] ?? ''),
+          $categoryLabel,
+          $categorySlug ?: null,
+          $tag,
           $_POST['price'] !== '' ? (int)$_POST['price'] : null,
           'EUR',
           trim($_POST['summary'] ?? ''),
@@ -36,12 +42,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
       case 'update_product':
         $productId = (int)($_POST['product_id'] ?? 0);
         $featuredOrder = isset($_POST['is_featured']) ? max(1, (int)($_POST['featured_order'] ?? 1)) : 0;
-        $stmt = $pdo->prepare('UPDATE products SET slug = ?, name = ?, category = ?, tag = ?, price = ?, summary = ?, type = ?, featured_order = ? WHERE id = ?');
+        $categorySlug = trim($_POST['category_slug'] ?? '');
+        $categoryMeta = $categorySlug ? find_category_by_slug($pdo, $categorySlug) : null;
+        $categoryLabel = $categoryMeta ? category_label_for_lang($categoryMeta, 'fr') : trim($_POST['category'] ?? '');
+        $tag = trim($_POST['tag'] ?? '') ?: $categoryLabel;
+
+        $stmt = $pdo->prepare('UPDATE products SET slug = ?, name = ?, category = ?, category_slug = ?, tag = ?, price = ?, summary = ?, type = ?, featured_order = ? WHERE id = ?');
         $stmt->execute([
           trim($_POST['slug'] ?? ''),
           trim($_POST['name'] ?? ''),
-          trim($_POST['category'] ?? ''),
-          trim($_POST['tag'] ?? ''),
+          $categoryLabel,
+          $categorySlug ?: null,
+          $tag,
           $_POST['price'] !== '' ? (int)$_POST['price'] : null,
           trim($_POST['summary'] ?? ''),
           trim($_POST['type'] ?? ''),
@@ -123,6 +135,53 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         ]);
         $statusMessage = 'Statut de l’annonce mis à jour.';
         break;
+
+      case 'add_category':
+        $slugInput = trim($_POST['slug'] ?? '');
+        if ($slugInput === '') {
+          throw new Exception('Le slug de la catégorie est requis.');
+        }
+
+        $normalizedSlug = strtolower(preg_replace('/[^a-z0-9-]+/', '-', iconv('UTF-8', 'ASCII//TRANSLIT//IGNORE', $slugInput) ?: $slugInput));
+        $defaultLabel = trim($_POST['default_label'] ?? '');
+        $scope = in_array($_POST['scope'] ?? 'product', ['product', 'guide', 'all'], true) ? $_POST['scope'] : 'product';
+        $sortOrder = isset($_POST['sort_order']) ? (int)$_POST['sort_order'] : 0;
+        $isActive = isset($_POST['is_active']) ? 1 : 0;
+        $translationsRaw = trim($_POST['translations'] ?? '');
+        $translations = [];
+
+        if ($translationsRaw !== '') {
+          $translations = json_decode($translationsRaw, true);
+          if (!is_array($translations)) {
+            throw new Exception('Le JSON de traduction est invalide.');
+          }
+        }
+
+        if ($defaultLabel !== '' && empty($translations['fr'])) {
+          $translations['fr'] = $defaultLabel;
+        }
+
+        $stmt = $pdo->prepare('INSERT INTO categories (slug, default_label, translations, scope, sort_order, is_active) VALUES (?, ?, ?, ?, ?, ?) ON DUPLICATE KEY UPDATE default_label = VALUES(default_label), translations = VALUES(translations), scope = VALUES(scope), sort_order = VALUES(sort_order), is_active = VALUES(is_active)');
+        $stmt->execute([
+          $normalizedSlug,
+          $defaultLabel,
+          json_encode($translations, JSON_UNESCAPED_UNICODE),
+          $scope,
+          $sortOrder,
+          $isActive,
+        ]);
+        synchronize_category_slugs($pdo);
+        $statusMessage = 'Catégorie enregistrée.';
+        break;
+
+      case 'toggle_category':
+        $stmt = $pdo->prepare('UPDATE categories SET is_active = ? WHERE id = ?');
+        $stmt->execute([
+          (int)($_POST['target_state'] ?? 0),
+          (int)($_POST['category_id'] ?? 0),
+        ]);
+        $statusMessage = 'Statut de la catégorie mis à jour.';
+        break;
     }
   } catch (Exception $e) {
     $statusMessage = 'Erreur : ' . $e->getMessage();
@@ -132,7 +191,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 $allProductsStmt = $pdo->query('SELECT id, name FROM products ORDER BY name');
 $allProducts = $allProductsStmt->fetchAll();
 
-$productsTableStmt = $pdo->query('SELECT id, slug, name, category, tag, price, currency, summary, type, featured_order FROM products ORDER BY name');
+$productsTableStmt = $pdo->query('SELECT id, slug, name, category, category_slug, tag, price, currency, summary, type, featured_order FROM products ORDER BY name');
 $productsTable = $productsTableStmt->fetchAll();
 
 $suppliersStmt = $pdo->query('SELECT s.*, COUNT(sp.id) AS product_links FROM suppliers s LEFT JOIN supplier_products sp ON sp.supplier_id = s.id GROUP BY s.id ORDER BY s.name');
@@ -154,6 +213,15 @@ foreach ($supplierProducts as $link) {
 
 $announcementsStmt = $pdo->query('SELECT fa.*, p.name AS product_name FROM featured_announcements fa LEFT JOIN products p ON p.id = fa.product_id ORDER BY fa.priority DESC, fa.start_at DESC, fa.id DESC');
 $announcements = $announcementsStmt->fetchAll();
+
+$allCategories = get_all_categories($pdo);
+$activeCategories = array_values(array_filter($allCategories, fn($cat) => (int)($cat['is_active'] ?? 1) === 1));
+$productCategoryOptions = array_map(fn($cat) => [
+  'value' => $cat['slug'],
+  'label' => category_label_for_lang($cat, 'fr'),
+  'translations' => $cat['translations'],
+  'scope' => $cat['scope'],
+], filter_categories_by_scope($activeCategories, ['product', 'all']));
 ?>
 <!doctype html>
 <html lang="fr">
@@ -454,6 +522,94 @@ $announcements = $announcementsStmt->fetchAll();
                   <div class="tab-pane fade" id="tab-products" role="tabpanel" aria-labelledby="tab-products-tab">
                     <div class="card shadow-sm border-0 mb-4">
                       <div class="card-body">
+                        <div class="d-flex align-items-center justify-content-between mb-3 flex-wrap gap-2">
+                          <div>
+                            <h2 class="h5 mb-0">Catégories & traductions</h2>
+                            <p class="text-muted small mb-0">Ajoutez des catégories multilingues utilisables dans les filtres et les produits.</p>
+                          </div>
+                          <span class="badge bg-light text-dark"><?= count($allCategories) ?> catégorie(s)</span>
+                        </div>
+                        <div class="row g-4">
+                          <div class="col-lg-5">
+                            <div class="border rounded p-3 bg-light h-100">
+                              <h3 class="h6">Créer ou mettre à jour</h3>
+                              <form method="post" class="vstack gap-3">
+                                <input type="hidden" name="action" value="add_category">
+                                <div class="row g-3">
+                                  <div class="col-sm-6">
+                                    <label class="form-label">Slug</label>
+                                    <input type="text" name="slug" class="form-control" placeholder="industriel" required>
+                                    <div class="form-text">Utilisé dans les URLs/filtre.</div>
+                                  </div>
+                                  <div class="col-sm-6">
+                                    <label class="form-label">Libellé par défaut (fr)</label>
+                                    <input type="text" name="default_label" class="form-control" placeholder="Industriel" required>
+                                  </div>
+                                  <div class="col-sm-6">
+                                    <label class="form-label">Portée</label>
+                                    <select name="scope" class="form-select">
+                                      <option value="product">Produits</option>
+                                      <option value="guide">Guides</option>
+                                      <option value="all">Produits & guides</option>
+                                    </select>
+                                  </div>
+                                  <div class="col-sm-6">
+                                    <label class="form-label">Ordre</label>
+                                    <input type="number" name="sort_order" class="form-control" min="0" value="0">
+                                  </div>
+                                  <div class="col-12">
+                                    <label class="form-label">Traductions (JSON)</label>
+                                    <textarea name="translations" class="form-control" rows="3" placeholder='{"en":"Industrial","de":"Industriell"}'></textarea>
+                                    <div class="form-text">Une clé par langue (fr, en, de…).</div>
+                                  </div>
+                                  <div class="col-12 form-check">
+                                    <input class="form-check-input" type="checkbox" value="1" id="category_active" name="is_active" checked>
+                                    <label class="form-check-label" for="category_active">Catégorie active</label>
+                                  </div>
+                                </div>
+                                <button class="btn btn-success" type="submit">Enregistrer la catégorie</button>
+                              </form>
+                            </div>
+                          </div>
+
+                          <div class="col-lg-7">
+                            <?php if (!empty($allCategories)): ?>
+                              <div class="list-group">
+                                <?php foreach ($allCategories as $category): ?>
+                                  <div class="list-group-item d-flex align-items-start flex-column flex-md-row gap-3">
+                                    <div class="flex-grow-1">
+                                      <div class="d-flex align-items-center gap-2 flex-wrap">
+                                        <h4 class="h6 mb-0"><?= htmlspecialchars($category['default_label']) ?></h4>
+                                        <span class="badge bg-light text-muted">Slug : <?= htmlspecialchars($category['slug']) ?></span>
+                                        <span class="badge bg-secondary-subtle text-secondary">Scope : <?= htmlspecialchars($category['scope']) ?></span>
+                                        <?php if (!($category['is_active'] ?? 1)): ?>
+                                          <span class="badge bg-outline-danger text-danger">Inactif</span>
+                                        <?php endif; ?>
+                                      </div>
+                                      <p class="text-muted small mb-1">Ordre : <?= (int)$category['sort_order'] ?></p>
+                                      <p class="text-muted small mb-0">Langues disponibles : <?= htmlspecialchars(implode(', ', array_keys($category['translations']))) ?></p>
+                                    </div>
+                                    <div class="d-flex gap-2 align-items-center">
+                                      <form method="post">
+                                        <input type="hidden" name="action" value="toggle_category">
+                                        <input type="hidden" name="category_id" value="<?= (int)$category['id'] ?>">
+                                        <input type="hidden" name="target_state" value="<?= $category['is_active'] ? 0 : 1 ?>">
+                                        <button class="btn btn-sm <?= $category['is_active'] ? 'btn-outline-secondary' : 'btn-primary' ?>" type="submit"><?= $category['is_active'] ? 'Désactiver' : 'Activer' ?></button>
+                                      </form>
+                                    </div>
+                                  </div>
+                                <?php endforeach; ?>
+                              </div>
+                            <?php else: ?>
+                              <div class="alert alert-light border">Aucune catégorie pour le moment.</div>
+                            <?php endif; ?>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div class="card shadow-sm border-0 mb-4">
+                      <div class="card-body">
                         <div class="d-flex align-items-center justify-content-between mb-3">
                           <div>
                             <h2 class="h5 mb-0">Catalogue produits (CRUD)</h2>
@@ -479,7 +635,11 @@ $announcements = $announcementsStmt->fetchAll();
                                   </div>
                                   <div class="col-sm-6">
                                     <label class="form-label">Catégorie</label>
-                                    <input type="text" name="category" class="form-control" placeholder="Industriel" required>
+                                    <select name="category_slug" class="form-select" required>
+                                      <option value="">Choisir…</option>
+                                      <?php render_category_options($productCategoryOptions); ?>
+                                    </select>
+                                    <div class="form-text">Les libellés s’adaptent selon la langue.</div>
                                   </div>
                                   <div class="col-sm-6">
                                     <label class="form-label">Tag</label>
@@ -527,7 +687,10 @@ $announcements = $announcementsStmt->fetchAll();
                                     </div>
                                     <div class="col-sm-6 col-md-4">
                                       <label class="form-label small">Catégorie</label>
-                                      <input type="text" name="category" class="form-control form-control-sm" value="<?= htmlspecialchars($product['category']) ?>" required>
+                                      <select name="category_slug" class="form-select form-select-sm" required>
+                                        <option value="">Choisir…</option>
+                                        <?php render_category_options($productCategoryOptions, $product['category_slug'] ?? ''); ?>
+                                      </select>
                                     </div>
                                     <div class="col-sm-6 col-md-4">
                                       <label class="form-label small">Tag</label>

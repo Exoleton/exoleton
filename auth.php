@@ -4,6 +4,10 @@ if (session_status() !== PHP_SESSION_ACTIVE) {
 }
 
 require_once __DIR__ . '/db.php';
+require_once __DIR__ . '/categories.php';
+
+// S'assure que la table des catégories est disponible et pré-remplie
+bootstrap_categories_schema($pdo);
 
 function preferred_password_algorithm(): array
 {
