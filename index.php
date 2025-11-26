@@ -13,19 +13,15 @@ $products = $productsStmt->fetchAll();
 $guidesStmt = $pdo->query("SELECT title, summary, image FROM guides ORDER BY published_at DESC, id DESC LIMIT 3");
 $guides = $guidesStmt->fetchAll();
 
-$announcementsStmt = $pdo->query("SELECT fa.title, fa.message, fa.link_url, fa.priority, p.slug, p.name AS product_name FROM featured_announcements fa LEFT JOIN products p ON p.id = fa.product_id WHERE fa.is_active = 1 AND (fa.start_at IS NULL OR fa.start_at <= NOW()) AND (fa.end_at IS NULL OR fa.end_at >= NOW()) ORDER BY fa.priority DESC, fa.start_at DESC, fa.id DESC LIMIT 3");
+$now = (new DateTimeImmutable())->format('Y-m-d H:i:s');
+$announcementsStmt = $pdo->prepare("SELECT fa.title, fa.message, fa.link_url, fa.priority, p.slug, p.name AS product_name FROM featured_announcements fa LEFT JOIN products p ON p.id = fa.product_id WHERE fa.is_active = 1 AND (fa.start_at IS NULL OR fa.start_at <= :now) AND (fa.end_at IS NULL OR fa.end_at >= :now) ORDER BY fa.priority DESC, fa.start_at DESC, fa.id DESC LIMIT 3");
+$announcementsStmt->execute(['now' => $now]);
 $announcements = $announcementsStmt->fetchAll();
 
 $currentUser = current_user($pdo);
 
-$navCategoryOptions = [
-  '' => 'All categories',
-  'Industriel' => 'Industrial',
-  'Médical' => 'Medical',
-  'Particulier / Quotidien' => 'Personal / Daily',
-  'Collectivités / Soins' => 'Communities / Care',
-  'Guides & ressources' => 'Guides & resources',
-];
+$categories = get_active_categories($pdo);
+$navCategoryOptions = category_options_with_all($categories);
 ?>
 <!doctype html>
 <html lang="fr">
@@ -81,9 +77,7 @@ $navCategoryOptions = [
               <div class="nav-search-select-wrap">
                 <label class="visually-hidden" for="navSearchCategory">Category</label>
                 <select id="navSearchCategory" name="cat" class="form-select nav-search-select">
-                  <?php foreach ($navCategoryOptions as $value => $label): ?>
-                    <option value="<?= htmlspecialchars($value, ENT_QUOTES, 'UTF-8'); ?>"><?= htmlspecialchars($label, ENT_QUOTES, 'UTF-8'); ?></option>
-                  <?php endforeach; ?>
+                  <?php render_category_options($navCategoryOptions); ?>
                 </select>
                 <span class="nav-search-caret" aria-hidden="true">▾</span>
               </div>

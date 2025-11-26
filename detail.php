@@ -18,14 +18,8 @@ if (!$product) {
 
 $currentUser = current_user($pdo);
 
-$navCategoryOptions = [
-  '' => 'All categories',
-  'Industriel' => 'Industrial',
-  'Médical' => 'Medical',
-  'Particulier / Quotidien' => 'Personal / Daily',
-  'Collectivités / Soins' => 'Communities / Care',
-  'Guides & ressources' => 'Guides & resources',
-];
+$categories = get_active_categories($pdo);
+$navCategoryOptions = category_options_with_all($categories);
 
 function price_html($p, $cur = 'EUR'){
   if(!$p || $p <= 0) return 'Sur demande';
@@ -117,9 +111,7 @@ $alternatives = $alternativesStmt->fetchAll();
               <div class="nav-search-select-wrap">
                 <label class="visually-hidden" for="navSearchCategory">Category</label>
                 <select id="navSearchCategory" name="cat" class="form-select nav-search-select">
-                  <?php foreach ($navCategoryOptions as $value => $label): ?>
-                    <option value="<?= htmlspecialchars($value, ENT_QUOTES, 'UTF-8'); ?>"><?= htmlspecialchars($label, ENT_QUOTES, 'UTF-8'); ?></option>
-                  <?php endforeach; ?>
+                  <?php render_category_options($navCategoryOptions); ?>
                 </select>
                 <span class="nav-search-caret" aria-hidden="true">▾</span>
               </div>

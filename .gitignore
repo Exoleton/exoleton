@@ -3,6 +3,8 @@ node_modules/
 uploads/
 cache/
 logs/
+storage/
+*.sqlite
 .env
 *.log
 .idea/
