@@ -18,6 +18,15 @@ if (!$product) {
 
 $currentUser = current_user($pdo);
 
+$navCategoryOptions = [
+  '' => 'Toutes les catégories',
+  'Industriel' => 'Industriel',
+  'Médical' => 'Médical',
+  'Particulier / Quotidien' => 'Particulier / Quotidien',
+  'Collectivités / Soins' => 'Collectivités / Soins',
+  'Guides & ressources' => 'Guides & ressources',
+];
+
 function price_html($p, $cur = 'EUR'){
   if(!$p || $p <= 0) return 'Sur demande';
   return number_format($p, 0, ',', ' ') . ' ' . ($cur === 'EUR' ? '€' : $cur);
@@ -98,46 +107,63 @@ $alternatives = $alternativesStmt->fetchAll();
         <span class="navbar-toggler-icon"></span>
       </button>
       <nav id="mainNav" class="collapse navbar-collapse">
-        <ul class="navbar-nav ms-auto mb-2 mb-lg-0 align-items-lg-center">
-          <li class="nav-item"><a class="nav-link" href="index.php" data-i18n="nav.home">Accueil</a></li>
-          <li class="nav-item dropdown">
-            <a class="nav-link dropdown-toggle active" href="#produits" id="produitsMenu" role="button" data-bs-toggle="dropdown" aria-expanded="false" data-i18n="nav.products">Produits</a>
-            <ul class="dropdown-menu" aria-labelledby="produitsMenu">
-              <li><a class="dropdown-item" href="index.php#produits" data-i18n="nav.industrial">Industriel</a></li>
-              <li><a class="dropdown-item" href="index.php#produits" data-i18n="nav.medical">Médical / Rééducation</a></li>
-              <li><a class="dropdown-item" href="index.php#produits" data-i18n="nav.consumer">Particulier / Quotidien</a></li>
-              <li><a class="dropdown-item" href="index.php#produits" data-i18n="nav.care">Collectivités / Soins</a></li>
-            </ul>
-          </li>
-          <li class="nav-item"><a class="nav-link" href="index.php#comparateur" data-i18n="nav.comparator">Comparateur</a></li>
-          <li class="nav-item"><a class="nav-link" href="index.php#guides" data-i18n="nav.guides">Guides</a></li>
-          <li class="nav-item ms-lg-3">
-            <a class="btn btn-primary" href="#demo" data-i18n="nav.demo">Demander une démo</a>
-          </li>
-          <li class="nav-item ms-lg-3">
-            <label class="visually-hidden" for="languageSwitcherDetail" data-i18n="lang.label">Langue</label>
-            <select id="languageSwitcherDetail" class="form-select form-select-sm" data-language-switcher></select>
-          </li>
-          <?php if ($currentUser): ?>
-            <li class="nav-item dropdown ms-lg-3">
-              <a class="nav-link dropdown-toggle" href="#" id="userMenu" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                Bonjour <?= htmlspecialchars($currentUser['name']); ?>
-              </a>
-              <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userMenu">
-                <li><a class="dropdown-item" href="account.php">Mon compte</a></li>
-                <?php if (($currentUser['role'] ?? 'customer') === 'admin'): ?>
-                  <li><a class="dropdown-item" href="admin.php">Administration</a></li>
-                <?php endif; ?>
-                <li><hr class="dropdown-divider"></li>
-                <li><a class="dropdown-item text-danger" href="logout.php">Se déconnecter</a></li>
+        <div class="d-lg-flex align-items-lg-center w-100 gap-3">
+          <form class="nav-search flex-grow-1 my-3 my-lg-0" method="get" action="recherche.php" role="search">
+            <label class="visually-hidden" for="navSearchQuery">Rechercher</label>
+            <div class="input-group nav-search-combobox">
+              <label class="visually-hidden" for="navSearchCategory">Catégorie</label>
+              <select id="navSearchCategory" name="cat" class="form-select bg-light-subtle border-end-0">
+                <?php foreach ($navCategoryOptions as $value => $label): ?>
+                  <option value="<?= htmlspecialchars($value, ENT_QUOTES, 'UTF-8'); ?>"><?= htmlspecialchars($label, ENT_QUOTES, 'UTF-8'); ?></option>
+                <?php endforeach; ?>
+              </select>
+              <span class="input-group-text bg-transparent border-start-0 border-end-0 px-3" aria-hidden="true">🔍</span>
+              <input id="navSearchQuery" name="q" type="search" class="form-control border-start-0 border-end-0" placeholder="Exosquelette industriel, aide à la marche…" data-i18n-placeholder="search.placeholder">
+              <button class="btn btn-primary" type="submit" data-i18n="search.cta">Rechercher</button>
+            </div>
+          </form>
+
+          <ul class="navbar-nav ms-lg-auto mb-2 mb-lg-0 align-items-lg-center">
+            <li class="nav-item"><a class="nav-link" href="index.php" data-i18n="nav.home">Accueil</a></li>
+            <li class="nav-item dropdown">
+              <a class="nav-link dropdown-toggle active" href="#produits" id="produitsMenu" role="button" data-bs-toggle="dropdown" aria-expanded="false" data-i18n="nav.products">Produits</a>
+              <ul class="dropdown-menu" aria-labelledby="produitsMenu">
+                <li><a class="dropdown-item" href="index.php#produits" data-i18n="nav.industrial">Industriel</a></li>
+                <li><a class="dropdown-item" href="index.php#produits" data-i18n="nav.medical">Médical / Rééducation</a></li>
+                <li><a class="dropdown-item" href="index.php#produits" data-i18n="nav.consumer">Particulier / Quotidien</a></li>
+                <li><a class="dropdown-item" href="index.php#produits" data-i18n="nav.care">Collectivités / Soins</a></li>
               </ul>
             </li>
-          <?php else: ?>
+            <li class="nav-item"><a class="nav-link" href="index.php#comparateur" data-i18n="nav.comparator">Comparateur</a></li>
+            <li class="nav-item"><a class="nav-link" href="index.php#guides" data-i18n="nav.guides">Guides</a></li>
             <li class="nav-item ms-lg-3">
-              <a class="btn btn-outline-primary" href="login.php">Connexion</a>
+              <a class="btn btn-primary" href="#demo" data-i18n="nav.demo">Demander une démo</a>
             </li>
-          <?php endif; ?>
-        </ul>
+            <li class="nav-item ms-lg-3">
+              <label class="visually-hidden" for="languageSwitcherDetail" data-i18n="lang.label">Langue</label>
+              <select id="languageSwitcherDetail" class="form-select form-select-sm" data-language-switcher></select>
+            </li>
+            <?php if ($currentUser): ?>
+              <li class="nav-item dropdown ms-lg-3">
+                <a class="nav-link dropdown-toggle" href="#" id="userMenu" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                  Bonjour <?= htmlspecialchars($currentUser['name']); ?>
+                </a>
+                <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userMenu">
+                  <li><a class="dropdown-item" href="account.php">Mon compte</a></li>
+                  <?php if (($currentUser['role'] ?? 'customer') === 'admin'): ?>
+                    <li><a class="dropdown-item" href="admin.php">Administration</a></li>
+                  <?php endif; ?>
+                  <li><hr class="dropdown-divider"></li>
+                  <li><a class="dropdown-item text-danger" href="logout.php">Se déconnecter</a></li>
+                </ul>
+              </li>
+            <?php else: ?>
+              <li class="nav-item ms-lg-3">
+                <a class="btn btn-outline-primary" href="login.php">Connexion</a>
+              </li>
+            <?php endif; ?>
+          </ul>
+        </div>
       </nav>
     </div>
   </header>
