@@ -106,6 +106,26 @@
     if (dict && dict.lang && dict.lang.label) {
       document.documentElement.lang = currentLang;
     }
+
+    updateCategoryOptionsLabels(currentLang);
+  }
+
+  function updateCategoryOptionsLabels(lang){
+    document.querySelectorAll('option[data-category-translations]').forEach(option => {
+      let translations = {};
+      try {
+        const parsed = JSON.parse(option.dataset.categoryTranslations || '{}');
+        translations = parsed && typeof parsed === 'object' ? parsed : {};
+      } catch (err) {
+        translations = {};
+      }
+
+      const fallback = option.dataset.defaultLabel || option.textContent;
+      const nextLabel = translations[lang] || translations.fr || fallback;
+      if (nextLabel) {
+        option.textContent = nextLabel;
+      }
+    });
   }
 
   function populateSelectors(current){
@@ -163,6 +183,7 @@
         }
       }
       applyTranslations(translations);
+      window.dispatchEvent(new CustomEvent('exoleton:language-changed', { detail: { lang } }));
     } catch (err) {
       console.error('Unable to apply translations', err);
     }

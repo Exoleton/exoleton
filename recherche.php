@@ -13,21 +13,29 @@ $sanitizedQuery = htmlspecialchars($query, ENT_QUOTES, 'UTF-8');
 $sanitizedCategory = htmlspecialchars($category, ENT_QUOTES, 'UTF-8');
 $like = '%' . $query . '%';
 
-$categoryOptions = [
-  '' => 'All categories',
-  'Industriel' => 'Industrial',
-  'Médical' => 'Medical',
-  'Particulier / Quotidien' => 'Personal / Daily',
-  'Collectivités / Soins' => 'Communities / Care',
-  'Guides & ressources' => 'Guides & resources',
-];
+$categories = get_active_categories($pdo);
+$categoryOptions = category_options_with_all($categories);
 $navCategoryOptions = $categoryOptions;
 
-$isGuideCategory = in_array($category, ['Guide', 'Guides', 'Guides & ressources'], true);
+$selectedCategory = null;
+foreach ($categoryOptions as $option) {
+  if ($option['value'] === $category) {
+    $selectedCategory = $option;
+    break;
+  }
+}
+
+$selectedCategoryLabel = $selectedCategory['translations']['fr'] ?? ($selectedCategory['label'] ?? $category);
+$isGuideCategory = $selectedCategory && $selectedCategory['scope'] === 'guide';
+$shouldSearchGuides = ($category === '' || $isGuideCategory);
+$categoriesBySlug = [];
+foreach ($categories as $cat) {
+  $categoriesBySlug[$cat['slug']] = $cat;
+}
 
 $products = [];
 if (!$isGuideCategory) {
-  $productQuery = "SELECT slug, name, tag, category, summary, price, currency, main_image, tags FROM products";
+  $productQuery = "SELECT slug, name, tag, category, category_slug, summary, price, currency, main_image, tags FROM products";
   $productWhere = [];
   $productParams = [];
 
@@ -37,8 +45,9 @@ if (!$isGuideCategory) {
   }
 
   if ($category !== '') {
-    $productWhere[] = "(tag = :category OR category = :category)";
-    $productParams['category'] = $category;
+    $productWhere[] = "(category_slug = :category_slug OR tag = :legacyCategory OR category = :legacyCategory)";
+    $productParams['category_slug'] = $category;
+    $productParams['legacyCategory'] = $selectedCategoryLabel;
   }
 
   if (!empty($productWhere)) {
@@ -51,34 +60,44 @@ if (!$isGuideCategory) {
   $products = $prodStmt->fetchAll();
 }
 
-$guideQuery = "SELECT title, summary, image, category, tags FROM guides";
-$guideWhere = [];
-$guideParams = [];
+$guides = [];
+if ($shouldSearchGuides) {
+  $guideQuery = "SELECT title, summary, image, category, category_slug, tags FROM guides";
+  $guideWhere = [];
+  $guideParams = [];
 
-if ($query !== '') {
-  $guideWhere[] = "(title LIKE :q OR summary LIKE :q OR tags LIKE :q)";
-  $guideParams['q'] = $like;
+  if ($query !== '') {
+    $guideWhere[] = "(title LIKE :q OR summary LIKE :q OR tags LIKE :q)";
+    $guideParams['q'] = $like;
+  }
+
+  if ($category !== '') {
+    $guideWhere[] = "(category_slug = :guideSlug OR category = :guideCategory OR (:guideSlug = 'guides' AND category IN ('Guide', 'Guides & ressources')))";
+    $guideParams['guideSlug'] = $category;
+    $guideParams['guideCategory'] = $selectedCategoryLabel === 'Guides & ressources' ? 'Guide' : $selectedCategoryLabel;
+  }
+
+  if (!empty($guideWhere)) {
+    $guideQuery .= ' WHERE ' . implode(' AND ', $guideWhere);
+  }
+
+  $guideQuery .= ' ORDER BY published_at DESC, id DESC';
+  $guideStmt = $pdo->prepare($guideQuery);
+  $guideStmt->execute($guideParams);
+  $guides = $guideStmt->fetchAll();
 }
-
-if ($category !== '') {
-  $guideWhere[] = "(category = :guideCategory OR :guideCategory IN ('Guide', 'Guides & ressources'))";
-  $guideParams['guideCategory'] = $category === 'Guides & ressources' ? 'Guide' : $category;
-}
-
-if (!empty($guideWhere)) {
-  $guideQuery .= ' WHERE ' . implode(' AND ', $guideWhere);
-}
-
-$guideQuery .= ' ORDER BY published_at DESC, id DESC';
-$guideStmt = $pdo->prepare($guideQuery);
-$guideStmt->execute($guideParams);
-$guides = $guideStmt->fetchAll();
 
 $results = [];
 foreach ($products as $product) {
+  $categorySlug = $product['category_slug'] ?: ($product['tag'] ?: $product['category']);
+  $categoryLabel = $categorySlug;
+  if (!empty($categorySlug) && isset($categoriesBySlug[$categorySlug])) {
+    $categoryLabel = category_label_for_lang($categoriesBySlug[$categorySlug], 'fr');
+  }
+
   $results[] = [
     'title' => $product['name'],
-    'category' => $product['tag'] ?: $product['category'],
+    'category' => $categoryLabel,
     'summary' => $product['summary'],
     'price' => $product['price'],
     'currency' => $product['currency'],
@@ -91,9 +110,17 @@ foreach ($products as $product) {
 $currentUser = current_user($pdo);
 
 foreach ($guides as $guide) {
+  $guideSlug = $guide['category_slug'] ?: $guide['category'];
+  $guideLabel = $guideSlug;
+  if (!empty($guideSlug) && isset($categoriesBySlug[$guideSlug])) {
+    $guideLabel = category_label_for_lang($categoriesBySlug[$guideSlug], 'fr');
+  } elseif (!$guideLabel) {
+    $guideLabel = 'Guide';
+  }
+
   $results[] = [
     'title' => $guide['title'],
-    'category' => $guide['category'] ?: 'Guide',
+    'category' => $guideLabel,
     'summary' => $guide['summary'],
     'price' => null,
     'currency' => null,
@@ -151,9 +178,7 @@ foreach ($guides as $guide) {
               <div class="nav-search-select-wrap">
                 <label class="visually-hidden" for="navSearchCategory">Category</label>
                 <select id="navSearchCategory" name="cat" class="form-select nav-search-select">
-                  <?php foreach ($navCategoryOptions as $value => $label): ?>
-                    <option value="<?php echo htmlspecialchars($value, ENT_QUOTES, 'UTF-8'); ?>" <?php echo $category === $value ? 'selected' : ''; ?>><?php echo htmlspecialchars($label, ENT_QUOTES, 'UTF-8'); ?></option>
-                  <?php endforeach; ?>
+                  <?php render_category_options($navCategoryOptions, $category); ?>
                 </select>
                 <span class="nav-search-caret" aria-hidden="true">▾</span>
               </div>
@@ -218,9 +243,7 @@ foreach ($guides as $guide) {
               <div class="input-group input-group-lg mb-3 search-combobox">
                 <label class="visually-hidden" for="searchCategory">Catégorie</label>
                 <select id="searchCategory" name="cat" class="form-select bg-light-subtle border-end-0">
-                  <?php foreach ($categoryOptions as $value => $label): ?>
-                    <option value="<?php echo htmlspecialchars($value, ENT_QUOTES, 'UTF-8'); ?>" <?php echo $category === $value ? 'selected' : ''; ?>><?php echo htmlspecialchars($label, ENT_QUOTES, 'UTF-8'); ?></option>
-                  <?php endforeach; ?>
+                  <?php render_category_options($categoryOptions, $category); ?>
                 </select>
                 <span class="input-group-text bg-transparent border-start-0 border-end-0 px-3"><span class="bi bi-search"></span></span>
                 <input id="searchQuery" name="q" type="search" class="form-control border-start-0 border-end-0" placeholder="Exosquelette industriel, aide à la marche…" value="<?php echo $sanitizedQuery; ?>" data-i18n-placeholder="search.placeholder">
