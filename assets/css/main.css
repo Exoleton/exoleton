@@ -24,7 +24,7 @@ section[id] { scroll-margin-top: 84px; }  /* offset propre pour les ancres (#pro
 }
 
 /* Barre de recherche intégrée à la navbar */
-.nav-search{ min-width:280px; }
+.nav-search{ min-width:360px; }
 .nav-search .nav-search-combobox{
   background:#f8fafc;
   border:1px solid rgba(15,23,42,.08);
@@ -32,12 +32,15 @@ section[id] { scroll-margin-top: 84px; }  /* offset propre pour les ancres (#pro
   overflow:hidden;
 }
 .nav-search .nav-search-combobox .form-select{
-  max-width:200px;
+  max-width:180px;
   min-width:150px;
   border-top-right-radius:0;
   border-bottom-right-radius:0;
 }
-.nav-search .nav-search-combobox .form-control{ border-radius:0; }
+.nav-search .nav-search-combobox .form-control{
+  border-radius:0;
+  min-width:260px;
+}
 .nav-search .nav-search-combobox .btn{
   border-top-left-radius:0;
   border-bottom-left-radius:0;

@@ -101,9 +101,6 @@ $navCategoryOptions = [
           <li class="nav-item"><a class="nav-link" href="#comparateur" data-i18n="nav.comparator">Comparateur</a></li>
           <li class="nav-item"><a class="nav-link" href="#guides" data-i18n="nav.guides">Guides</a></li>
           <li class="nav-item ms-lg-3">
-            <a class="nav-link" href="#cta" data-i18n="nav.cta">Découvrir les solutions</a>
-          </li>
-          <li class="nav-item ms-lg-3">
             <label class="visually-hidden" for="languageSwitcher" data-i18n="lang.label">Langue</label>
             <select id="languageSwitcher" class="form-select form-select-sm" data-language-switcher>
             </select>
