@@ -1,18 +1,18 @@
 {
   "lang": {
     "label": "Lingua",
-    "fr": "Francese (FR)",
-    "en": "Inglese (EN)",
-    "de": "Tedesco (DE)",
-    "it": "Italiano (IT)",
-    "es": "Spagnolo (ES)",
-    "pt": "Portoghese (PT)",
-    "nl": "Olandese (NL)",
-    "pl": "Polacco (PL)",
-    "jp": "Giapponese (JP)",
-    "zh": "Cinese semplificato (ZH)",
-    "kr": "Coreano (KR)",
-    "ru": "Russo (RU)"
+    "fr": "Francese 🇫🇷",
+    "en": "Inglese 🇬🇧",
+    "de": "Tedesco 🇩🇪",
+    "it": "Italiano 🇮🇹",
+    "es": "Spagnolo 🇪🇸",
+    "pt": "Portoghese 🇵🇹",
+    "nl": "Olandese 🇳🇱",
+    "pl": "Polacco 🇵🇱",
+    "jp": "Giapponese 🇯🇵",
+    "zh": "Cinese semplificato 🇨🇳",
+    "kr": "Coreano 🇰🇷",
+    "ru": "Russo 🇷🇺"
   },
   "meta": {
     "title": "Exoleton – Sito di esoscheletri e tecnologie di assistenza",

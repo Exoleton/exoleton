@@ -1,18 +1,18 @@
 {
   "lang": {
     "label": "Język",
-    "fr": "Francuski (FR)",
-    "en": "Angielski (EN)",
-    "de": "Niemiecki (DE)",
-    "it": "Włoski (IT)",
-    "es": "Hiszpański (ES)",
-    "pt": "Portugalski (PT)",
-    "nl": "Niderlandzki (NL)",
-    "pl": "Polski (PL)",
-    "jp": "Japoński (JP)",
-    "zh": "Chiński uproszczony (ZH)",
-    "kr": "Koreański (KR)",
-    "ru": "Rosyjski (RU)"
+    "fr": "Francuski 🇫🇷",
+    "en": "Angielski 🇬🇧",
+    "de": "Niemiecki 🇩🇪",
+    "it": "Włoski 🇮🇹",
+    "es": "Hiszpański 🇪🇸",
+    "pt": "Portugalski 🇵🇹",
+    "nl": "Niderlandzki 🇳🇱",
+    "pl": "Polski 🇵🇱",
+    "jp": "Japoński 🇯🇵",
+    "zh": "Chiński uproszczony 🇨🇳",
+    "kr": "Koreański 🇰🇷",
+    "ru": "Rosyjski 🇷🇺"
   },
   "meta": {
     "title": "Exoleton – Egzoszkielety i technologie wspomagające",

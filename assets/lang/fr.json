@@ -1,18 +1,18 @@
 {
   "lang": {
     "label": "Langue",
-    "fr": "Français (FR)",
-    "en": "Anglais (EN)",
-    "de": "Allemand (DE)",
-    "it": "Italien (IT)",
-    "es": "Espagnol (ES)",
-    "pt": "Portugais (PT)",
-    "nl": "Néerlandais (NL)",
-    "pl": "Polonais (PL)",
-    "jp": "Japonais (JP)",
-    "zh": "Chinois simplifié (ZH)",
-    "kr": "Coréen (KR)",
-    "ru": "Russe (RU)"
+    "fr": "Français 🇫🇷",
+    "en": "Anglais 🇬🇧",
+    "de": "Allemand 🇩🇪",
+    "it": "Italien 🇮🇹",
+    "es": "Espagnol 🇪🇸",
+    "pt": "Portugais 🇵🇹",
+    "nl": "Néerlandais 🇳🇱",
+    "pl": "Polonais 🇵🇱",
+    "jp": "Japonais 🇯🇵",
+    "zh": "Chinois simplifié 🇨🇳",
+    "kr": "Coréen 🇰🇷",
+    "ru": "Russe 🇷🇺"
   },
   "meta": {
     "title": "Exoleton – Site d’exosquelettes et technologies d’assistance",
