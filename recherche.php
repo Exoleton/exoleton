@@ -98,7 +98,7 @@ foreach ($guides as $guide) {
           <li class="nav-item"><a class="nav-link" href="index.php#guides" data-i18n="nav.guides">Guides</a></li>
           <li class="nav-item"><a class="nav-link active" aria-current="page" href="recherche.php" data-i18n="nav.search">Recherche</a></li>
           <li class="nav-item ms-lg-3">
-            <a class="btn btn-primary" href="index.php#cta" data-i18n="nav.cta">Découvrir les solutions</a>
+            <a class="nav-link" href="index.php#cta" data-i18n="nav.cta">Découvrir les solutions</a>
           </li>
           <li class="nav-item ms-lg-3">
             <label class="visually-hidden" for="languageSwitcherSearch" data-i18n="lang.label">Langue</label>
