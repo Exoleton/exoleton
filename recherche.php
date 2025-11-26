@@ -8,21 +8,70 @@ function price_html($p, $cur = 'EUR')
 }
 
 $query = isset($_GET['q']) ? trim($_GET['q']) : '';
+$category = isset($_GET['cat']) ? trim($_GET['cat']) : '';
 $sanitizedQuery = htmlspecialchars($query, ENT_QUOTES, 'UTF-8');
+$sanitizedCategory = htmlspecialchars($category, ENT_QUOTES, 'UTF-8');
 $like = '%' . $query . '%';
 
-if ($query === '') {
-  $products = $pdo->query("SELECT slug, name, tag, category, summary, price, currency, main_image, tags FROM products ORDER BY name")->fetchAll();
-  $guides = $pdo->query("SELECT title, summary, image, category, tags FROM guides ORDER BY published_at DESC, id DESC")->fetchAll();
-} else {
-  $prodStmt = $pdo->prepare("SELECT slug, name, tag, category, summary, price, currency, main_image, tags FROM products WHERE name LIKE :q OR summary LIKE :q OR tags LIKE :q ORDER BY name");
-  $prodStmt->execute(['q' => $like]);
-  $products = $prodStmt->fetchAll();
+$categoryOptions = [
+  '' => 'Toutes les catégories',
+  'Industriel' => 'Industriel',
+  'Médical' => 'Médical',
+  'Particulier / Quotidien' => 'Particulier / Quotidien',
+  'Collectivités / Soins' => 'Collectivités / Soins',
+  'Guides & ressources' => 'Guides & ressources',
+];
 
-  $guideStmt = $pdo->prepare("SELECT title, summary, image, category, tags FROM guides WHERE title LIKE :q OR summary LIKE :q OR tags LIKE :q ORDER BY published_at DESC, id DESC");
-  $guideStmt->execute(['q' => $like]);
-  $guides = $guideStmt->fetchAll();
+$isGuideCategory = in_array($category, ['Guide', 'Guides', 'Guides & ressources'], true);
+
+$products = [];
+if (!$isGuideCategory) {
+  $productQuery = "SELECT slug, name, tag, category, summary, price, currency, main_image, tags FROM products";
+  $productWhere = [];
+  $productParams = [];
+
+  if ($query !== '') {
+    $productWhere[] = "(name LIKE :q OR summary LIKE :q OR tags LIKE :q)";
+    $productParams['q'] = $like;
+  }
+
+  if ($category !== '') {
+    $productWhere[] = "(tag = :category OR category = :category)";
+    $productParams['category'] = $category;
+  }
+
+  if (!empty($productWhere)) {
+    $productQuery .= ' WHERE ' . implode(' AND ', $productWhere);
+  }
+
+  $productQuery .= ' ORDER BY name';
+  $prodStmt = $pdo->prepare($productQuery);
+  $prodStmt->execute($productParams);
+  $products = $prodStmt->fetchAll();
 }
+
+$guideQuery = "SELECT title, summary, image, category, tags FROM guides";
+$guideWhere = [];
+$guideParams = [];
+
+if ($query !== '') {
+  $guideWhere[] = "(title LIKE :q OR summary LIKE :q OR tags LIKE :q)";
+  $guideParams['q'] = $like;
+}
+
+if ($category !== '') {
+  $guideWhere[] = "(category = :guideCategory OR :guideCategory IN ('Guide', 'Guides & ressources'))";
+  $guideParams['guideCategory'] = $category === 'Guides & ressources' ? 'Guide' : $category;
+}
+
+if (!empty($guideWhere)) {
+  $guideQuery .= ' WHERE ' . implode(' AND ', $guideWhere);
+}
+
+$guideQuery .= ' ORDER BY published_at DESC, id DESC';
+$guideStmt = $pdo->prepare($guideQuery);
+$guideStmt->execute($guideParams);
+$guides = $guideStmt->fetchAll();
 
 $results = [];
 foreach ($products as $product) {
@@ -140,9 +189,16 @@ foreach ($guides as $guide) {
           <div class="col-lg-5">
             <form class="search-box p-3 p-lg-4 shadow-sm rounded-4 bg-white" method="get" action="recherche.php">
               <label for="searchQuery" class="form-label text-muted small text-uppercase" data-i18n="search.label">Rechercher</label>
-              <div class="input-group input-group-lg mb-3">
-                <span class="input-group-text bg-transparent border-end-0"><span class="bi bi-search"></span></span>
-                <input id="searchQuery" name="q" type="search" class="form-control border-start-0" placeholder="Exosquelette industriel, aide à la marche…" value="<?php echo $sanitizedQuery; ?>" data-i18n-placeholder="search.placeholder">
+              <div class="input-group input-group-lg mb-3 search-combobox">
+                <label class="visually-hidden" for="searchCategory">Catégorie</label>
+                <select id="searchCategory" name="cat" class="form-select bg-light-subtle border-end-0">
+                  <?php foreach ($categoryOptions as $value => $label): ?>
+                    <option value="<?php echo htmlspecialchars($value, ENT_QUOTES, 'UTF-8'); ?>" <?php echo $category === $value ? 'selected' : ''; ?>><?php echo htmlspecialchars($label, ENT_QUOTES, 'UTF-8'); ?></option>
+                  <?php endforeach; ?>
+                </select>
+                <span class="input-group-text bg-transparent border-start-0 border-end-0 px-3"><span class="bi bi-search"></span></span>
+                <input id="searchQuery" name="q" type="search" class="form-control border-start-0 border-end-0" placeholder="Exosquelette industriel, aide à la marche…" value="<?php echo $sanitizedQuery; ?>" data-i18n-placeholder="search.placeholder">
+                <button type="submit" class="btn btn-primary px-4">Rechercher</button>
               </div>
               <div class="d-flex flex-wrap gap-2">
                 <span class="badge rounded-pill text-bg-light" data-i18n="nav.industrial">Industriel</span>
