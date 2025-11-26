@@ -27,20 +27,24 @@ section[id] { scroll-margin-top: 84px; }  /* offset propre pour les ancres (#pro
 .nav-search{ min-width:360px; }
 .nav-search .nav-search-bar{
   display:flex;
+  flex-wrap:nowrap;
   align-items:stretch;
   width:100%;
   height:46px;
   border:1px solid #cfcfcf;
-  border-radius:6px;
+  border-radius:8px;
   overflow:hidden;
   box-shadow:inset 0 1px 0 rgba(255,255,255,.65), 0 1px 1px rgba(0,0,0,.08);
   background:#f3f3f3;
 }
 .nav-search .nav-search-select-wrap{
   position:relative;
+  display:flex;
+  align-items:center;
   min-width:190px;
   background:#f3f3f3;
   border-right:1px solid #d5d5d5;
+  padding-right:0.75rem;
 }
 .nav-search .nav-search-select{
   appearance:none;
@@ -50,11 +54,12 @@ section[id] { scroll-margin-top: 84px; }  /* offset propre pour les ancres (#pro
   border:0;
   width:100%;
   height:100%;
-  padding:0 2.25rem 0 1rem;
+  padding:0 1.25rem 0 1rem;
   font-weight:600;
   font-size:.95rem;
   color:#111;
   box-shadow:none;
+  line-height:1.2;
 }
 .nav-search .nav-search-select:focus{ outline:none; box-shadow:none; }
 .nav-search .nav-search-caret{
@@ -66,11 +71,14 @@ section[id] { scroll-margin-top: 84px; }  /* offset propre pour les ancres (#pro
   color:#555;
   font-size:.9rem;
 }
-.nav-search .nav-search-input{ flex:1; min-width:200px; }
+.nav-search .nav-search-input{
+  flex:1;
+  min-width:220px;
+  display:flex;
+}
 .nav-search .nav-search-input input{
   border:0;
   width:100%;
-  height:100%;
   padding:0 1rem;
   font-size:1rem;
   background:#fff;
@@ -78,18 +86,22 @@ section[id] { scroll-margin-top: 84px; }  /* offset propre pour les ancres (#pro
 }
 .nav-search .nav-search-input input:focus{ outline:none; box-shadow:none; }
 .nav-search .nav-search-btn{
-  background:#0f8bff;
+  background:#1e90ff;
   border:0;
   min-width:56px;
   display:flex;
   align-items:center;
   justify-content:center;
   color:#fff;
-  padding:0 1.15rem;
+  padding:0 1.1rem;
   transition:background-color .15s ease;
 }
-.nav-search .nav-search-btn:hover{ background:#0a74d2; }
-.nav-search .nav-search-btn svg{ width:20px; height:20px; }
+.nav-search .nav-search-btn:hover{ background:#1475d4; }
+.nav-search .nav-search-btn svg{
+  width:20px;
+  height:20px;
+  display:block;
+}
 @media (max-width:991.98px){
   .nav-search{ width:100%; }
   .nav-search .nav-search-select-wrap{ min-width:160px; }
