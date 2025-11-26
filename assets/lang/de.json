@@ -1,18 +1,18 @@
 {
   "lang": {
     "label": "Sprache",
-    "fr": "Französisch 🇫🇷",
-    "en": "Englisch 🇬🇧",
-    "de": "Deutsch 🇩🇪",
-    "it": "Italienisch 🇮🇹",
-    "es": "Spanisch 🇪🇸",
-    "pt": "Portugiesisch 🇵🇹",
-    "nl": "Niederländisch 🇳🇱",
-    "pl": "Polnisch 🇵🇱",
-    "jp": "Japanisch 🇯🇵",
-    "zh": "Vereinfachtes Chinesisch 🇨🇳",
-    "kr": "Koreanisch 🇰🇷",
-    "ru": "Russisch 🇷🇺"
+    "fr": "🇫🇷 FR",
+    "en": "🇬🇧 EN",
+    "de": "🇩🇪 DE",
+    "it": "🇮🇹 IT",
+    "es": "🇪🇸 ES",
+    "pt": "🇵🇹 PT",
+    "nl": "🇳🇱 NL",
+    "pl": "🇵🇱 PL",
+    "jp": "🇯🇵 JP",
+    "zh": "🇨🇳 ZH",
+    "kr": "🇰🇷 KR",
+    "ru": "🇷🇺 RU"
   },
   "meta": {
     "title": "Exoleton – Webseite für Exoskelette und Assistenztechnologien",
