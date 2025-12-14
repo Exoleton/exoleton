@@ -4,84 +4,67 @@ require __DIR__ . '/auth.php';
 $user = require_admin($pdo);
 $currentUser = $user;
 $statusMessage = null;
-$lang = 'fr';
 
-$categories = $pdo->query("SELECT c.id, COALESCE(ci.name, c.code) AS name FROM categories c LEFT JOIN categories_i18n ci ON ci.category_id = c.id AND ci.lang = '$lang' ORDER BY c.sort_order, c.id")->fetchAll();
+function sanitize_field(?string $value): string
+{
+    return trim((string)$value);
+}
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $action = $_POST['action'] ?? '';
     try {
         switch ($action) {
             case 'create_product':
-                $pdo->beginTransaction();
-                $stmt = $pdo->prepare('INSERT INTO products (category_id, supplier_id, sku, brand, is_active) VALUES (?, NULL, ?, ?, 1)');
+                $stmt = $pdo->prepare('INSERT INTO products (slug, name, category, tag, price, currency, summary, baseline, brand, availability, type, weight, autonomy, charge, main_image, hero_image, bullets, tags, featured_order) VALUES (:slug, :name, :category, :tag, :price, :currency, :summary, :baseline, :brand, :availability, :type, :weight, :autonomy, :charge, :main_image, :hero_image, :bullets, :tags, :featured_order)');
                 $stmt->execute([
-                    (int)($_POST['category_id'] ?? 0),
-                    trim($_POST['sku'] ?? ''),
-                    trim($_POST['brand'] ?? ''),
+                    'slug' => sanitize_field($_POST['slug'] ?? ''),
+                    'name' => sanitize_field($_POST['name'] ?? ''),
+                    'category' => sanitize_field($_POST['category'] ?? ''),
+                    'tag' => sanitize_field($_POST['tag'] ?? ''),
+                    'price' => $_POST['price'] === '' ? null : (int)$_POST['price'],
+                    'currency' => sanitize_field($_POST['currency'] ?? 'EUR') ?: 'EUR',
+                    'summary' => sanitize_field($_POST['summary'] ?? ''),
+                    'baseline' => sanitize_field($_POST['baseline'] ?? ''),
+                    'brand' => sanitize_field($_POST['brand'] ?? ''),
+                    'availability' => sanitize_field($_POST['availability'] ?? 'https://schema.org/InStock') ?: 'https://schema.org/InStock',
+                    'type' => sanitize_field($_POST['type'] ?? ''),
+                    'weight' => sanitize_field($_POST['weight'] ?? ''),
+                    'autonomy' => sanitize_field($_POST['autonomy'] ?? ''),
+                    'charge' => sanitize_field($_POST['charge'] ?? ''),
+                    'main_image' => sanitize_field($_POST['main_image'] ?? ''),
+                    'hero_image' => sanitize_field($_POST['hero_image'] ?? ''),
+                    'bullets' => sanitize_field($_POST['bullets'] ?? ''),
+                    'tags' => sanitize_field($_POST['tags'] ?? ''),
+                    'featured_order' => (int)($_POST['featured_order'] ?? 0),
                 ]);
-                $productId = (int)$pdo->lastInsertId();
-
-                $stmt = $pdo->prepare('INSERT INTO products_i18n (product_id, lang, title, slug, description, meta_title, meta_description) VALUES (?, ?, ?, ?, ?, ?, ?)');
-                $stmt->execute([
-                    $productId,
-                    $lang,
-                    trim($_POST['title'] ?? ''),
-                    trim($_POST['slug'] ?? ''),
-                    trim($_POST['description'] ?? ''),
-                    trim($_POST['meta_title'] ?? ''),
-                    trim($_POST['meta_description'] ?? ''),
-                ]);
-
-                if ($_POST['price'] !== '') {
-                    $vStmt = $pdo->prepare('INSERT INTO product_variants (product_id, sku, price, vat, stock_qty, stock_reserved, is_active) VALUES (?, ?, ?, 20.00, 0, 0, 1)');
-                    $vStmt->execute([$productId, trim($_POST['variant_sku'] ?? $_POST['sku'] ?? ''), (float)$_POST['price']]);
-                }
-
-                $pdo->commit();
                 $statusMessage = 'Produit créé avec succès.';
                 break;
 
             case 'update_product':
                 $productId = (int)($_POST['product_id'] ?? 0);
-                $pdo->beginTransaction();
-                $pdo->prepare('UPDATE products SET category_id = ?, sku = ?, brand = ?, is_active = ? WHERE id = ?')->execute([
-                    (int)($_POST['category_id'] ?? 0),
-                    trim($_POST['sku'] ?? ''),
-                    trim($_POST['brand'] ?? ''),
-                    isset($_POST['is_active']) ? 1 : 0,
-                    $productId,
+                $stmt = $pdo->prepare('UPDATE products SET slug = :slug, name = :name, category = :category, tag = :tag, price = :price, currency = :currency, summary = :summary, baseline = :baseline, brand = :brand, availability = :availability, type = :type, weight = :weight, autonomy = :autonomy, charge = :charge, main_image = :main_image, hero_image = :hero_image, bullets = :bullets, tags = :tags, featured_order = :featured_order WHERE id = :id');
+                $stmt->execute([
+                    'slug' => sanitize_field($_POST['slug'] ?? ''),
+                    'name' => sanitize_field($_POST['name'] ?? ''),
+                    'category' => sanitize_field($_POST['category'] ?? ''),
+                    'tag' => sanitize_field($_POST['tag'] ?? ''),
+                    'price' => $_POST['price'] === '' ? null : (int)$_POST['price'],
+                    'currency' => sanitize_field($_POST['currency'] ?? 'EUR') ?: 'EUR',
+                    'summary' => sanitize_field($_POST['summary'] ?? ''),
+                    'baseline' => sanitize_field($_POST['baseline'] ?? ''),
+                    'brand' => sanitize_field($_POST['brand'] ?? ''),
+                    'availability' => sanitize_field($_POST['availability'] ?? 'https://schema.org/InStock') ?: 'https://schema.org/InStock',
+                    'type' => sanitize_field($_POST['type'] ?? ''),
+                    'weight' => sanitize_field($_POST['weight'] ?? ''),
+                    'autonomy' => sanitize_field($_POST['autonomy'] ?? ''),
+                    'charge' => sanitize_field($_POST['charge'] ?? ''),
+                    'main_image' => sanitize_field($_POST['main_image'] ?? ''),
+                    'hero_image' => sanitize_field($_POST['hero_image'] ?? ''),
+                    'bullets' => sanitize_field($_POST['bullets'] ?? ''),
+                    'tags' => sanitize_field($_POST['tags'] ?? ''),
+                    'featured_order' => (int)($_POST['featured_order'] ?? 0),
+                    'id' => $productId,
                 ]);
-                $pdo->prepare('UPDATE products_i18n SET title = ?, slug = ?, description = ?, meta_title = ?, meta_description = ? WHERE product_id = ? AND lang = ?')->execute([
-                    trim($_POST['title'] ?? ''),
-                    trim($_POST['slug'] ?? ''),
-                    trim($_POST['description'] ?? ''),
-                    trim($_POST['meta_title'] ?? ''),
-                    trim($_POST['meta_description'] ?? ''),
-                    $productId,
-                    $lang,
-                ]);
-
-                if ($_POST['price'] !== '') {
-                    $variant = $pdo->prepare('SELECT id FROM product_variants WHERE product_id = ? ORDER BY id LIMIT 1');
-                    $variant->execute([$productId]);
-                    $existing = $variant->fetchColumn();
-                    if ($existing) {
-                        $pdo->prepare('UPDATE product_variants SET sku = ?, price = ?, is_active = ? WHERE id = ?')->execute([
-                            trim($_POST['variant_sku'] ?? $_POST['sku'] ?? ''),
-                            (float)$_POST['price'],
-                            isset($_POST['is_active']) ? 1 : 0,
-                            $existing,
-                        ]);
-                    } else {
-                        $pdo->prepare('INSERT INTO product_variants (product_id, sku, price, vat, stock_qty, stock_reserved, is_active) VALUES (?, ?, ?, 20.00, 0, 0, 1)')->execute([
-                            $productId,
-                            trim($_POST['variant_sku'] ?? $_POST['sku'] ?? ''),
-                            (float)$_POST['price'],
-                        ]);
-                    }
-                }
-                $pdo->commit();
                 $statusMessage = 'Produit mis à jour.';
                 break;
 
@@ -92,29 +75,35 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 break;
 
             case 'create_supplier':
-                $stmt = $pdo->prepare('INSERT INTO suppliers (name, website, contact_email, contact_phone, is_active) VALUES (?, ?, ?, ?, 1)');
+                $stmt = $pdo->prepare('INSERT INTO suppliers (name, contact_name, email, phone, dropshipping_enabled, is_featured, notes) VALUES (?, ?, ?, ?, ?, ?, ?)');
                 $stmt->execute([
-                    trim($_POST['name'] ?? ''),
-                    trim($_POST['website'] ?? ''),
-                    trim($_POST['contact_email'] ?? ''),
-                    trim($_POST['contact_phone'] ?? ''),
+                    sanitize_field($_POST['name'] ?? ''),
+                    sanitize_field($_POST['contact_name'] ?? ''),
+                    sanitize_field($_POST['email'] ?? ''),
+                    sanitize_field($_POST['phone'] ?? ''),
+                    isset($_POST['dropshipping_enabled']) ? 1 : 0,
+                    isset($_POST['is_featured']) ? 1 : 0,
+                    sanitize_field($_POST['notes'] ?? ''),
                 ]);
                 $statusMessage = 'Fournisseur créé.';
                 break;
 
             case 'add_featured':
-                $stmt = $pdo->prepare('INSERT INTO featured_items (product_id, start_at, end_at, priority, is_active) VALUES (?, ?, ?, ?, 1)');
+                $stmt = $pdo->prepare('INSERT INTO featured_announcements (title, message, link_url, product_id, priority, start_at, end_at, is_active) VALUES (?, ?, ?, ?, ?, ?, ?, 1)');
                 $stmt->execute([
-                    (int)($_POST['product_id'] ?? 0),
-                    $_POST['start_at'] ?: date('Y-m-d H:i:s'),
-                    $_POST['end_at'] ?: date('Y-m-d H:i:s', strtotime('+30 days')),
+                    sanitize_field($_POST['title'] ?? ''),
+                    sanitize_field($_POST['message'] ?? ''),
+                    sanitize_field($_POST['link_url'] ?? ''),
+                    $_POST['product_id'] !== '' ? (int)$_POST['product_id'] : null,
                     (int)($_POST['priority'] ?? 0),
+                    $_POST['start_at'] ?: null,
+                    $_POST['end_at'] ?: null,
                 ]);
-                $statusMessage = 'Mise en avant ajoutée.';
+                $statusMessage = 'Annonce ajoutée.';
                 break;
 
             case 'toggle_featured':
-                $stmt = $pdo->prepare('UPDATE featured_items SET is_active = ? WHERE id = ?');
+                $stmt = $pdo->prepare('UPDATE featured_announcements SET is_active = ? WHERE id = ?');
                 $stmt->execute([(int)($_POST['target_state'] ?? 0), (int)($_POST['featured_id'] ?? 0)]);
                 $statusMessage = 'Statut mis à jour.';
                 break;
@@ -126,23 +115,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $statusMessage = 'Erreur : ' . $e->getMessage();
     }
 }
-
 $products = $pdo->query(
-    "SELECT p.id, p.sku, p.brand, p.category_id, p.is_active, pi.title, pi.slug, COALESCE(ci.name, c.code) AS category,
-            (SELECT MIN(price) FROM product_variants v WHERE v.product_id = p.id AND v.is_active = 1) AS min_price
-       FROM products p
-       INNER JOIN products_i18n pi ON pi.product_id = p.id AND pi.lang = '$lang'
-       LEFT JOIN categories c ON c.id = p.category_id
-       LEFT JOIN categories_i18n ci ON ci.category_id = c.id AND ci.lang = '$lang'
-      ORDER BY pi.title"
+    "SELECT id, slug, name, category, tag, price, currency, brand, availability, type, weight, autonomy, charge, main_image, hero_image, summary, baseline, bullets, tags, featured_order
+       FROM products
+      ORDER BY featured_order ASC, id ASC"
 )->fetchAll();
 
-$suppliers = $pdo->query('SELECT id, name, website, contact_email, contact_phone, is_active FROM suppliers ORDER BY name')->fetchAll();
+$suppliers = $pdo->query('SELECT id, name, contact_name, email, phone, dropshipping_enabled, is_featured, notes FROM suppliers ORDER BY name')->fetchAll();
 $featuredItems = $pdo->query(
-    "SELECT fi.id, fi.priority, fi.start_at, fi.end_at, fi.is_active, pi.title AS product_title
-       FROM featured_items fi
-       INNER JOIN products_i18n pi ON pi.product_id = fi.product_id AND pi.lang = '$lang'
-      ORDER BY fi.priority DESC, fi.start_at DESC"
+    "SELECT fa.id, fa.title, fa.priority, fa.start_at, fa.end_at, fa.is_active, fa.link_url, p.name AS product_title
+       FROM featured_announcements fa
+       LEFT JOIN products p ON p.id = fa.product_id
+      ORDER BY fa.priority DESC, fa.start_at DESC, fa.id DESC"
 )->fetchAll();
 ?>
 <!doctype html>
@@ -197,72 +181,99 @@ $featuredItems = $pdo->query(
               <div class="table-responsive">
                 <table class="table align-middle">
                   <thead class="table-light">
-                    <tr><th>Nom</th><th>Catégorie</th><th>Marque</th><th>Prix min</th><th>Statut</th><th></th></tr>
+                    <tr><th>Nom</th><th>Catégorie</th><th>Marque</th><th>Prix</th><th></th></tr>
                   </thead>
                   <tbody>
                     <?php foreach ($products as $prod): ?>
                       <tr>
-                        <td><?= htmlspecialchars($prod['title']) ?></td>
+                        <td><?= htmlspecialchars($prod['name']) ?></td>
                         <td><?= htmlspecialchars($prod['category'] ?? '—') ?></td>
                         <td><?= htmlspecialchars($prod['brand'] ?? '—') ?></td>
-                        <td><?= $prod['min_price'] !== null ? number_format((float)$prod['min_price'], 2, ',', ' ') . ' €' : '—' ?></td>
-                        <td><?= $prod['is_active'] ? 'Actif' : 'Inactif' ?></td>
+                        <td><?= $prod['price'] !== null ? number_format((float)$prod['price'], 0, ',', ' ') . ' ' . htmlspecialchars($prod['currency'] ?? 'EUR') : 'Sur demande' ?></td>
                         <td>
                           <button class="btn btn-sm btn-outline-secondary" data-bs-toggle="collapse" data-bs-target="#edit-<?= $prod['id'] ?>">Éditer</button>
                         </td>
                       </tr>
                       <tr class="collapse" id="edit-<?= $prod['id'] ?>">
-                        <td colspan="6">
+                        <td colspan="5">
                           <form method="post" class="row g-2">
                             <input type="hidden" name="action" value="update_product">
                             <input type="hidden" name="product_id" value="<?= (int)$prod['id'] ?>">
                             <div class="col-md-4">
-                              <label class="form-label">Titre</label>
-                              <input class="form-control" name="title" value="<?= htmlspecialchars($prod['title']) ?>">
+                              <label class="form-label">Nom</label>
+                              <input class="form-control" name="name" value="<?= htmlspecialchars($prod['name']) ?>" required>
                             </div>
                             <div class="col-md-4">
                               <label class="form-label">Slug</label>
-                              <input class="form-control" name="slug" value="<?= htmlspecialchars($prod['slug']) ?>">
+                              <input class="form-control" name="slug" value="<?= htmlspecialchars($prod['slug']) ?>" required>
                             </div>
                             <div class="col-md-4">
                               <label class="form-label">Catégorie</label>
-                              <select name="category_id" class="form-select">
-                                <?php foreach ($categories as $cat): ?>
-                                  <option value="<?= (int)$cat['id'] ?>" <?= ($prod['category_id'] ?? null) == $cat['id'] ? 'selected' : '' ?>><?= htmlspecialchars($cat['name']) ?></option>
-                                <?php endforeach; ?>
-                              </select>
+                              <input class="form-control" name="category" value="<?= htmlspecialchars($prod['category']) ?>">
+                            </div>
+                            <div class="col-md-4">
+                              <label class="form-label">Tag court</label>
+                              <input class="form-control" name="tag" value="<?= htmlspecialchars($prod['tag']) ?>">
+                            </div>
+                            <div class="col-md-4">
+                              <label class="form-label">Prix (nombre entier)</label>
+                              <input type="number" step="1" min="0" class="form-control" name="price" value="<?= htmlspecialchars((string)$prod['price']) ?>">
+                            </div>
+                            <div class="col-md-4">
+                              <label class="form-label">Devise</label>
+                              <input class="form-control" name="currency" value="<?= htmlspecialchars($prod['currency']) ?>">
                             </div>
                             <div class="col-md-4">
                               <label class="form-label">Marque</label>
                               <input class="form-control" name="brand" value="<?= htmlspecialchars($prod['brand']) ?>">
                             </div>
                             <div class="col-md-4">
-                              <label class="form-label">SKU</label>
-                              <input class="form-control" name="sku" value="<?= htmlspecialchars($prod['sku']) ?>">
+                              <label class="form-label">Poids</label>
+                              <input class="form-control" name="weight" value="<?= htmlspecialchars($prod['weight'] ?? '') ?>">
                             </div>
                             <div class="col-md-4">
-                              <label class="form-label">Prix</label>
-                              <input type="number" step="0.01" min="0" class="form-control" name="price" value="<?= htmlspecialchars((string)$prod['min_price']) ?>">
+                              <label class="form-label">Autonomie</label>
+                              <input class="form-control" name="autonomy" value="<?= htmlspecialchars($prod['autonomy'] ?? '') ?>">
                             </div>
                             <div class="col-md-4">
-                              <label class="form-label">SKU variante</label>
-                              <input class="form-control" name="variant_sku" value="<?= htmlspecialchars($prod['sku']) ?>">
+                              <label class="form-label">Charge assistée</label>
+                              <input class="form-control" name="charge" value="<?= htmlspecialchars($prod['charge'] ?? '') ?>">
                             </div>
-                            <div class="col-md-12">
-                              <label class="form-label">Description</label>
-                              <textarea class="form-control" name="description" rows="2"></textarea>
+                            <div class="col-md-4">
+                              <label class="form-label">Type</label>
+                              <input class="form-control" name="type" value="<?= htmlspecialchars($prod['type'] ?? '') ?>">
+                            </div>
+                            <div class="col-md-4">
+                              <label class="form-label">Disponibilité</label>
+                              <input class="form-control" name="availability" value="<?= htmlspecialchars($prod['availability'] ?? '') ?>">
                             </div>
                             <div class="col-md-6">
-                              <label class="form-label">Meta title</label>
-                              <input class="form-control" name="meta_title">
+                              <label class="form-label">Image principale</label>
+                              <input class="form-control" name="main_image" value="<?= htmlspecialchars($prod['main_image'] ?? '') ?>">
                             </div>
                             <div class="col-md-6">
-                              <label class="form-label">Meta description</label>
-                              <input class="form-control" name="meta_description">
+                              <label class="form-label">Visuel héros</label>
+                              <input class="form-control" name="hero_image" value="<?= htmlspecialchars($prod['hero_image'] ?? '') ?>">
                             </div>
-                            <div class="col-md-6 form-check ms-2">
-                              <input class="form-check-input" type="checkbox" name="is_active" value="1" <?= $prod['is_active'] ? 'checked' : '' ?>>
-                              <label class="form-check-label">Actif</label>
+                            <div class="col-md-6">
+                              <label class="form-label">Résumé</label>
+                              <textarea class="form-control" name="summary" rows="2"><?= htmlspecialchars($prod['summary'] ?? '') ?></textarea>
+                            </div>
+                            <div class="col-md-6">
+                              <label class="form-label">Baseline</label>
+                              <textarea class="form-control" name="baseline" rows="2"><?= htmlspecialchars($prod['baseline'] ?? '') ?></textarea>
+                            </div>
+                            <div class="col-md-6">
+                              <label class="form-label">Puces (séparées par |)</label>
+                              <textarea class="form-control" name="bullets" rows="2"><?= htmlspecialchars($prod['bullets'] ?? '') ?></textarea>
+                            </div>
+                            <div class="col-md-6">
+                              <label class="form-label">Tags (texte libre)</label>
+                              <textarea class="form-control" name="tags" rows="2"><?= htmlspecialchars($prod['tags'] ?? '') ?></textarea>
+                            </div>
+                            <div class="col-md-4">
+                              <label class="form-label">Ordre de mise en avant</label>
+                              <input type="number" class="form-control" name="featured_order" value="<?= (int)$prod['featured_order'] ?>">
                             </div>
                             <div class="col-12 d-flex gap-2">
                               <button class="btn btn-primary" type="submit">Mettre à jour</button>
@@ -290,11 +301,24 @@ $featuredItems = $pdo->query(
           <div class="card-body">
             <form method="post" class="row g-2 mb-3">
               <input type="hidden" name="action" value="add_featured">
+              <div class="col-12">
+                <label class="form-label">Titre</label>
+                <input class="form-control" name="title" required>
+              </div>
+              <div class="col-12">
+                <label class="form-label">Message</label>
+                <textarea class="form-control" name="message" rows="2"></textarea>
+              </div>
+              <div class="col-12">
+                <label class="form-label">Lien externe (optionnel)</label>
+                <input class="form-control" name="link_url" placeholder="https://...">
+              </div>
               <div class="col-md-4">
-                <label class="form-label">Produit</label>
+                <label class="form-label">Produit (optionnel)</label>
                 <select class="form-select" name="product_id">
+                  <option value="">-- aucun lien produit --</option>
                   <?php foreach ($products as $prod): ?>
-                    <option value="<?= (int)$prod['id'] ?>"><?= htmlspecialchars($prod['title']) ?></option>
+                    <option value="<?= (int)$prod['id'] ?>"><?= htmlspecialchars($prod['name']) ?></option>
                   <?php endforeach; ?>
                 </select>
               </div>
@@ -322,8 +346,10 @@ $featuredItems = $pdo->query(
                 <?php foreach ($featuredItems as $item): ?>
                   <li class="list-group-item d-flex justify-content-between align-items-center">
                     <div>
-                      <strong><?= htmlspecialchars($item['product_title']) ?></strong><br>
-                      <small class="text-muted">Du <?= htmlspecialchars($item['start_at']) ?> au <?= htmlspecialchars($item['end_at']) ?></small>
+                      <strong><?= htmlspecialchars($item['title']) ?></strong><br>
+                      <?php if ($item['product_title']): ?><small class="text-muted">Produit : <?= htmlspecialchars($item['product_title']) ?></small><br><?php endif; ?>
+                      <small class="text-muted">Du <?= htmlspecialchars($item['start_at'] ?? 'N/A') ?> au <?= htmlspecialchars($item['end_at'] ?? 'N/A') ?></small>
+                      <?php if ($item['link_url']): ?><div><a href="<?= htmlspecialchars($item['link_url']) ?>" target="_blank">Lien</a></div><?php endif; ?>
                     </div>
                     <form method="post" class="d-flex align-items-center gap-2 mb-0">
                       <input type="hidden" name="action" value="toggle_featured">
@@ -350,8 +376,8 @@ $featuredItems = $pdo->query(
             <form method="post" class="row g-2">
               <input type="hidden" name="action" value="create_product">
               <div class="col-12">
-                <label class="form-label">Titre</label>
-                <input class="form-control" name="title" required>
+                <label class="form-label">Nom</label>
+                <input class="form-control" name="name" required>
               </div>
               <div class="col-12">
                 <label class="form-label">Slug</label>
@@ -359,35 +385,31 @@ $featuredItems = $pdo->query(
               </div>
               <div class="col-12">
                 <label class="form-label">Catégorie</label>
-                <select class="form-select" name="category_id">
-                  <?php foreach ($categories as $cat): ?>
-                    <option value="<?= (int)$cat['id'] ?>"><?= htmlspecialchars($cat['name']) ?></option>
-                  <?php endforeach; ?>
-                </select>
+                <input class="form-control" name="category">
               </div>
               <div class="col-6">
+                <label class="form-label">Tag court</label>
+                <input class="form-control" name="tag">
+              </div>
+              <div class="col-6">
+                <label class="form-label">Devise</label>
+                <input class="form-control" name="currency" value="EUR">
+              </div>
+              <div class="col-12">
+                <label class="form-label">Prix (nombre entier)</label>
+                <input type="number" step="1" min="0" class="form-control" name="price">
+              </div>
+              <div class="col-12">
                 <label class="form-label">Marque</label>
                 <input class="form-control" name="brand">
               </div>
-              <div class="col-6">
-                <label class="form-label">SKU</label>
-                <input class="form-control" name="sku">
+              <div class="col-12">
+                <label class="form-label">Résumé</label>
+                <textarea class="form-control" rows="2" name="summary"></textarea>
               </div>
               <div class="col-12">
-                <label class="form-label">Prix (TTC)</label>
-                <input type="number" step="0.01" min="0" class="form-control" name="price">
-              </div>
-              <div class="col-12">
-                <label class="form-label">SKU variante</label>
-                <input class="form-control" name="variant_sku">
-              </div>
-              <div class="col-12">
-                <label class="form-label">Description</label>
-                <textarea class="form-control" rows="3" name="description"></textarea>
-              </div>
-              <div class="col-12">
-                <label class="form-label">Meta description</label>
-                <input class="form-control" name="meta_description">
+                <label class="form-label">Baseline</label>
+                <textarea class="form-control" rows="2" name="baseline"></textarea>
               </div>
               <div class="col-12">
                 <button class="btn btn-primary w-100" type="submit">Créer</button>
@@ -408,16 +430,28 @@ $featuredItems = $pdo->query(
                 <input class="form-control" name="name" required>
               </div>
               <div class="col-12">
-                <label class="form-label">Site web</label>
-                <input class="form-control" name="website">
+                <label class="form-label">Contact</label>
+                <input class="form-control" name="contact_name">
               </div>
               <div class="col-12">
                 <label class="form-label">Email</label>
-                <input class="form-control" name="contact_email">
+                <input class="form-control" name="email">
               </div>
               <div class="col-12">
                 <label class="form-label">Téléphone</label>
-                <input class="form-control" name="contact_phone">
+                <input class="form-control" name="phone">
+              </div>
+              <div class="col-6 form-check ms-2">
+                <input class="form-check-input" type="checkbox" name="dropshipping_enabled" value="1" checked>
+                <label class="form-check-label">Dropshipping</label>
+              </div>
+              <div class="col-6 form-check ms-2">
+                <input class="form-check-input" type="checkbox" name="is_featured" value="1">
+                <label class="form-check-label">Mis en avant</label>
+              </div>
+              <div class="col-12">
+                <label class="form-label">Notes</label>
+                <textarea class="form-control" rows="2" name="notes"></textarea>
               </div>
               <div class="col-12">
                 <button class="btn btn-outline-primary w-100" type="submit">Ajouter</button>
@@ -438,9 +472,11 @@ $featuredItems = $pdo->query(
                 <?php foreach ($suppliers as $supplier): ?>
                   <li class="list-group-item">
                     <div class="fw-semibold"><?= htmlspecialchars($supplier['name']) ?></div>
-                    <?php if ($supplier['website']): ?><div><a href="<?= htmlspecialchars($supplier['website']) ?>" target="_blank">Site</a></div><?php endif; ?>
-                    <?php if ($supplier['contact_email']): ?><div class="text-muted">Email : <?= htmlspecialchars($supplier['contact_email']) ?></div><?php endif; ?>
-                    <?php if ($supplier['contact_phone']): ?><div class="text-muted">Téléphone : <?= htmlspecialchars($supplier['contact_phone']) ?></div><?php endif; ?>
+                    <?php if ($supplier['contact_name']): ?><div class="text-muted">Contact : <?= htmlspecialchars($supplier['contact_name']) ?></div><?php endif; ?>
+                    <?php if ($supplier['email']): ?><div class="text-muted">Email : <?= htmlspecialchars($supplier['email']) ?></div><?php endif; ?>
+                    <?php if ($supplier['phone']): ?><div class="text-muted">Téléphone : <?= htmlspecialchars($supplier['phone']) ?></div><?php endif; ?>
+                    <div class="text-muted small">Dropshipping : <?= $supplier['dropshipping_enabled'] ? 'Oui' : 'Non' ?> · Mis en avant : <?= $supplier['is_featured'] ? 'Oui' : 'Non' ?></div>
+                    <?php if ($supplier['notes']): ?><div class="mt-1">Notes : <?= htmlspecialchars($supplier['notes']) ?></div><?php endif; ?>
                   </li>
                 <?php endforeach; ?>
               </ul>

@@ -5,16 +5,12 @@ $lang = 'fr';
 $slug = isset($_GET['slug']) ? trim($_GET['slug']) : '';
 
 $productStmt = $pdo->prepare(
-    "SELECT p.id, p.brand, p.category_id, p.is_active, pi.title, pi.slug, pi.description, pi.meta_description,
-            COALESCE(ci.name, c.code) AS category
-       FROM products p
-       INNER JOIN products_i18n pi ON pi.product_id = p.id AND pi.lang = :lang
-       LEFT JOIN categories c ON c.id = p.category_id
-       LEFT JOIN categories_i18n ci ON ci.category_id = c.id AND ci.lang = :lang
-      WHERE pi.slug = :slug
+    "SELECT id, name, slug, summary, baseline, brand, category, tag, price, currency, type, weight, autonomy, charge, main_image, hero_image, bullets, tags
+       FROM products
+      WHERE slug = :slug
       LIMIT 1"
 );
-$productStmt->execute(['slug' => $slug, 'lang' => $lang]);
+$productStmt->execute(['slug' => $slug]);
 $product = $productStmt->fetch();
 
 if (!$product) {
@@ -25,56 +21,34 @@ if (!$product) {
 
 $currentUser = current_user($pdo);
 
-$imagesStmt = $pdo->prepare("SELECT url FROM media WHERE product_id = :pid AND type = 'image' ORDER BY sort_order, id");
+$imagesStmt = $pdo->prepare("SELECT url FROM product_images WHERE product_id = :pid ORDER BY sort_order, id");
 $imagesStmt->execute(['pid' => $product['id']]);
 $galleryImages = $imagesStmt->fetchAll(PDO::FETCH_COLUMN);
 
-$variantsStmt = $pdo->prepare(
-    "SELECT id, sku, price, vat, stock_qty, stock_reserved, is_active
-       FROM product_variants
-      WHERE product_id = :pid
-      ORDER BY price ASC, id ASC"
-);
-$variantsStmt->execute(['pid' => $product['id']]);
-$variants = $variantsStmt->fetchAll();
+$downloadsStmt = $pdo->prepare("SELECT label, href FROM product_downloads WHERE product_id = :pid ORDER BY sort_order, id");
+$downloadsStmt->execute(['pid' => $product['id']]);
+$downloads = $downloadsStmt->fetchAll();
 
-$attributesStmt = $pdo->prepare(
-    "SELECT a.code, COALESCE(ai.name, a.code) AS label, a.unit, a.data_type,
-            pav.value_int, pav.value_decimal, pav.value_bool, pav.value_text, pav.value_select
-       FROM product_attribute_values pav
-       INNER JOIN attributes a ON a.id = pav.attribute_id
-       LEFT JOIN attributes_i18n ai ON ai.attribute_id = a.id AND ai.lang = :lang
-      WHERE pav.product_id = :pid
-      ORDER BY a.sort_order"
-);
-$attributesStmt->execute(['pid' => $product['id'], 'lang' => $lang]);
-$attributeRows = $attributesStmt->fetchAll();
+$useCasesStmt = $pdo->prepare("SELECT title, kpi, description FROM product_use_cases WHERE product_id = :pid ORDER BY sort_order, id");
+$useCasesStmt->execute(['pid' => $product['id']]);
+$useCases = $useCasesStmt->fetchAll();
 
-function format_attribute_value(array $attr): string
-{
-    foreach (['value_int', 'value_decimal', 'value_text', 'value_select'] as $key) {
-        if ($attr[$key] !== null && $attr[$key] !== '') {
-            $value = $attr[$key];
-            if ($attr['data_type'] === 'bool') {
-                return $attr['value_bool'] ? 'Oui' : 'Non';
-            }
-            return $attr['unit'] ? $value . ' ' . $attr['unit'] : $value;
-        }
-    }
-    if ($attr['value_bool'] !== null) {
-        return $attr['value_bool'] ? 'Oui' : 'Non';
-    }
-    return '—';
-}
+$specsStmt = $pdo->prepare("SELECT label, value FROM product_specs WHERE product_id = :pid ORDER BY sort_order, id");
+$specsStmt->execute(['pid' => $product['id']]);
+$specRows = $specsStmt->fetchAll();
 
-$mainImage = $galleryImages[0] ?? 'assets/img/hero-exosquelette.jpg';
-$summary = $product['meta_description'] ?: substr(strip_tags($product['description'] ?? ''), 0, 200);
+$alternativesStmt = $pdo->prepare("SELECT alt_name, alt_slug, tag, summary, price, image FROM product_alternatives WHERE product_id = :pid ORDER BY sort_order, id");
+$alternativesStmt->execute(['pid' => $product['id']]);
+$alternatives = $alternativesStmt->fetchAll();
+
+$mainImage = $product['hero_image'] ?: ($product['main_image'] ?: 'assets/img/hero-exosquelette.jpg');
+$summary = $product['summary'] ?: ($product['baseline'] ?: '');
 ?>
 <!doctype html>
 <html lang="fr">
 <head>
   <meta charset="utf-8">
-  <title><?= htmlspecialchars($product['title']) ?> – Exoleton</title>
+  <title><?= htmlspecialchars($product['name']) ?> – Exoleton</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="description" content="<?= htmlspecialchars($summary) ?>">
   <link rel="canonical" href="https://www.exoleton.com/produits/<?= urlencode($product['slug']) ?>">
@@ -83,7 +57,7 @@ $summary = $product['meta_description'] ?: substr(strip_tags($product['descripti
   <link rel="icon" type="image/png" sizes="32x32" href="/assets/img/ico.png">
   <link rel="icon" type="image/png" sizes="192x192" href="/assets/img/ico.png">
   <link rel="apple-touch-icon" href="/assets/img/ico.png">
-  <meta property="og:title" content="<?= htmlspecialchars($product['title']) ?>">
+  <meta property="og:title" content="<?= htmlspecialchars($product['name']) ?>">
   <meta property="og:description" content="<?= htmlspecialchars($summary) ?>">
   <meta property="og:image" content="<?= htmlspecialchars($mainImage) ?>">
   <meta property="og:type" content="product">
@@ -155,21 +129,20 @@ $summary = $product['meta_description'] ?: substr(strip_tags($product['descripti
 
   <main class="mt-5 pt-4">
     <section class="product-hero mb-4">
-      <img class="hero" src="<?= htmlspecialchars($mainImage) ?>" alt="<?= htmlspecialchars($product['title']) ?>" style="object-fit:cover;width:100%;height:360px;">
+      <img class="hero" src="<?= htmlspecialchars($mainImage) ?>" alt="<?= htmlspecialchars($product['name']) ?>" style="object-fit:cover;width:100%;height:360px;">
       <div class="overlay"></div>
       <div class="container position-relative" style="margin-top:-240px;">
         <div class="card shadow-lg border-0">
           <div class="card-body p-4 p-lg-5">
             <span class="badge bg-primary-subtle text-primary mb-2"><?= htmlspecialchars($product['category'] ?? 'Catalogue') ?></span>
-            <h1 class="display-6 fw-bold mb-2"><?= htmlspecialchars($product['title']) ?></h1>
+            <h1 class="display-6 fw-bold mb-2"><?= htmlspecialchars($product['name']) ?></h1>
             <?php if (!empty($product['brand'])): ?><p class="text-muted mb-2">Marque : <?= htmlspecialchars($product['brand']) ?></p><?php endif; ?>
-            <p class="lead mb-3"><?= htmlspecialchars($summary) ?></p>
-            <?php if (!empty($variants)): ?>
+            <p class="lead mb-3"><?= htmlspecialchars($summary ?: 'Aperçu à venir.') ?></p>
+            <?php if ($product['price'] !== null): ?>
               <div class="d-flex align-items-center gap-3">
                 <strong class="h4 mb-0">
-                  À partir de <?= number_format((float)$variants[0]['price'], 2, ',', ' ') ?> € TTC
+                  Prix indicatif : <?= number_format((float)$product['price'], 0, ',', ' ') ?> <?= htmlspecialchars($product['currency'] ?? 'EUR') ?>
                 </strong>
-                <a class="btn btn-primary" href="#variants">Voir les variantes</a>
               </div>
             <?php endif; ?>
           </div>
@@ -185,7 +158,7 @@ $summary = $product['meta_description'] ?: substr(strip_tags($product['descripti
               <h2 class="h5 mb-0">Description</h2>
             </div>
             <div class="card-body">
-              <?= $product['description'] ?: '<p class="text-muted mb-0">Aucune description disponible.</p>'; ?>
+              <?= $summary ? '<p class="mb-0">' . htmlspecialchars($summary) . '</p>' : '<p class="text-muted mb-0">Aucune description disponible.</p>'; ?>
             </div>
           </div>
 
@@ -194,20 +167,45 @@ $summary = $product['meta_description'] ?: substr(strip_tags($product['descripti
               <h2 class="h5 mb-0">Caractéristiques</h2>
             </div>
             <div class="card-body">
-              <?php if (empty($attributeRows)): ?>
+              <?php if (empty($specRows)): ?>
                 <p class="text-muted mb-0">Aucune caractéristique renseignée pour le moment.</p>
               <?php else: ?>
                 <div class="table-responsive">
                   <table class="table align-middle mb-0">
                     <tbody>
-                      <?php foreach ($attributeRows as $attr): ?>
+                      <?php foreach ($specRows as $attr): ?>
                         <tr>
                           <th style="width:40%;"><?= htmlspecialchars($attr['label']) ?></th>
-                          <td><?= htmlspecialchars(format_attribute_value($attr)) ?></td>
+                          <td><?= htmlspecialchars($attr['value']) ?></td>
                         </tr>
                       <?php endforeach; ?>
                     </tbody>
                   </table>
+                </div>
+              <?php endif; ?>
+            </div>
+          </div>
+
+          <div class="card shadow-sm mb-4">
+            <div class="card-header bg-white border-0">
+              <h2 class="h5 mb-0">Cas d'usage</h2>
+            </div>
+            <div class="card-body">
+              <?php if (empty($useCases)): ?>
+                <p class="text-muted mb-0">Pas de cas d'usage renseigné.</p>
+              <?php else: ?>
+                <div class="list-group list-group-flush">
+                  <?php foreach ($useCases as $case): ?>
+                    <div class="list-group-item">
+                      <div class="d-flex justify-content-between align-items-start">
+                        <div>
+                          <div class="fw-semibold"><?= htmlspecialchars($case['title']) ?></div>
+                          <div class="text-muted small"><?= htmlspecialchars($case['description']) ?></div>
+                        </div>
+                        <span class="badge bg-primary-subtle text-primary"><?= htmlspecialchars($case['kpi']) ?></span>
+                      </div>
+                    </div>
+                  <?php endforeach; ?>
                 </div>
               <?php endif; ?>
             </div>
@@ -217,28 +215,21 @@ $summary = $product['meta_description'] ?: substr(strip_tags($product['descripti
         <div class="col-lg-4">
           <div class="card shadow-sm mb-4" id="variants">
             <div class="card-header bg-white border-0">
-              <h2 class="h6 mb-0">Variantes & tarifs</h2>
+              <h2 class="h6 mb-0">Tarifs & documents</h2>
             </div>
             <div class="card-body">
-              <?php if (empty($variants)): ?>
-                <p class="text-muted mb-0">Aucune variante n'est disponible pour le moment.</p>
-              <?php else: ?>
+              <p class="mb-3">
+                <strong>Prix :</strong>
+                <?= $product['price'] !== null ? number_format((float)$product['price'], 0, ',', ' ') . ' ' . htmlspecialchars($product['currency'] ?? 'EUR') : 'Sur demande'; ?>
+              </p>
+              <?php if (!empty($downloads)): ?>
                 <div class="list-group list-group-flush">
-                  <?php foreach ($variants as $variant): ?>
-                    <div class="list-group-item">
-                      <div class="d-flex justify-content-between align-items-start">
-                        <div>
-                          <div class="fw-semibold">SKU : <?= htmlspecialchars($variant['sku'] ?? 'N/A') ?></div>
-                          <small class="text-muted">Stock : <?= (int)$variant['stock_qty'] - (int)$variant['stock_reserved'] ?></small>
-                        </div>
-                        <div class="text-end">
-                          <strong><?= number_format((float)$variant['price'], 2, ',', ' ') ?> €</strong><br>
-                          <small class="text-muted">TVA <?= number_format((float)$variant['vat'], 2) ?>%</small>
-                        </div>
-                      </div>
-                    </div>
+                  <?php foreach ($downloads as $download): ?>
+                    <a class="list-group-item list-group-item-action" href="<?= htmlspecialchars($download['href']) ?>" target="_blank">📄 <?= htmlspecialchars($download['label']) ?></a>
                   <?php endforeach; ?>
                 </div>
+              <?php else: ?>
+                <p class="text-muted mb-0">Aucun document téléchargeable pour le moment.</p>
               <?php endif; ?>
             </div>
           </div>
@@ -254,7 +245,7 @@ $summary = $product['meta_description'] ?: substr(strip_tags($product['descripti
                 <div class="row g-2">
                   <?php foreach ($galleryImages as $img): ?>
                     <div class="col-6">
-                      <img src="<?= htmlspecialchars($img) ?>" alt="<?= htmlspecialchars($product['title']) ?>" class="img-fluid rounded">
+                      <img src="<?= htmlspecialchars($img) ?>" alt="<?= htmlspecialchars($product['name']) ?>" class="img-fluid rounded">
                     </div>
                   <?php endforeach; ?>
                 </div>
