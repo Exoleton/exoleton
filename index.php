@@ -51,7 +51,7 @@ $navCategoryOptions = [
   '' => 'All categories',
   'Industriel' => 'Industrial',
   'Médical' => 'Medical',
-  'Particulier / Quotidien' => 'Personal / Daily',
+  'Particulier' => 'Personal / Daily',
   'Collectivités / Soins' => 'Communities / Care',
   'Guides & ressources' => 'Guides & resources',
 ];

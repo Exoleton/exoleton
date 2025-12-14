@@ -17,7 +17,7 @@ $categoryOptions = [
   '' => 'All categories',
   'Industriel' => 'Industrial',
   'Médical' => 'Medical',
-  'Particulier / Quotidien' => 'Personal / Daily',
+  'Particulier' => 'Personal / Daily',
   'Collectivités / Soins' => 'Communities / Care',
   'Guides & ressources' => 'Guides & resources',
 ];
@@ -40,7 +40,7 @@ if (!$isGuideCategory) {
   }
 
   if ($category !== '') {
-    $productWhere[] = "(p.category = :category)";
+    $productWhere[] = "(p.tag = :category OR p.category = :category)";
     $productParams['category'] = $category;
   }
 
