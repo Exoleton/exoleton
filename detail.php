@@ -1,11 +1,26 @@
 <?php
 // ===============================================
-// detail.php — Page détail produit Exoleton (DB actuelle)
+// detail.php — Page détail produit Exoleton (SEO /{lang}/...)
 // ===============================================
 require __DIR__ . '/auth.php';
 
-$lang = 'fr';
-$slug = isset($_GET['slug']) ? trim($_GET['slug']) : '';
+/**
+ * IMPORTANT
+ * - Ce fichier est appelé par router.php (ex: /fr/produit/slug -> router.php -> detail.php)
+ * - Donc $lang doit venir du routeur. Fallback fr si accès direct.
+ */
+$lang = $lang ?? 'fr';
+$base = '/' . $lang;
+
+// slug depuis router.php ?path=produit/{slug} OU depuis querystring ?slug=
+$slug = '';
+if (!empty($_GET['path'])) {
+  // ex: "produit/mon-slug"
+  $path = trim((string)$_GET['path'], '/');
+  $parts = explode('/', $path);
+  if (count($parts) >= 2) $slug = $parts[1];
+}
+if ($slug === '' && isset($_GET['slug'])) $slug = trim((string)$_GET['slug']);
 
 if ($slug === '') {
   http_response_code(404);
@@ -18,6 +33,17 @@ function price_html($p, $cur = 'EUR'){
   $p = (float)$p;
   if ($p <= 0) return 'Sur demande';
   return number_format($p, 0, ',', ' ') . ' ' . ($cur === 'EUR' ? '€' : $cur);
+}
+
+/**
+ * Fix critique: normaliser les URLs médias (sinon /fr/produit/... casse les chemins relatifs)
+ */
+function media_url(?string $url): string {
+  $url = trim((string)$url);
+  if ($url === '') return '';
+  if (preg_match('#^(https?://|data:)#i', $url)) return $url;
+  if (str_starts_with($url, '/')) return $url;
+  return '/' . ltrim($url, '/');
 }
 
 $currentUser = current_user($pdo);
@@ -106,30 +132,31 @@ $imagesStmt = $pdo->prepare("
 ");
 $imagesStmt->execute([':pid' => $product['id']]);
 $galleryImages = $imagesStmt->fetchAll(PDO::FETCH_COLUMN);
+$galleryImages = array_values(array_filter(array_map('media_url', $galleryImages)));
 
 if (empty($galleryImages)) {
-  $fallback = $product['hero_image'] ?: 'assets/img/hero-exosquelette.png';
+  $fallback = media_url($product['hero_image'] ?: '/assets/img/hero-exosquelette.png');
   $galleryImages = [$fallback];
 }
 
-/** SPECS (table techniques) : on construit depuis les attributs existants */
+/** SPECS (table techniques) */
 $specs = [];
-if (!empty($product['assistance_type']))   $specs[] = ['label' => 'Type', 'value' => $product['assistance_type']];
-if (!empty($product['weight_kg']))         $specs[] = ['label' => 'Poids (kg)', 'value' => (string)$product['weight_kg']];
-if (!empty($product['autonomy_h']))        $specs[] = ['label' => 'Autonomie (h)', 'value' => (string)$product['autonomy_h']];
-if (!empty($product['max_user_weight_kg']))$specs[] = ['label' => 'Charge (kg)', 'value' => (string)$product['max_user_weight_kg']];
+if (!empty($product['assistance_type']))    $specs[] = ['label' => 'Type', 'value' => $product['assistance_type']];
+if (!empty($product['weight_kg']))          $specs[] = ['label' => 'Poids (kg)', 'value' => (string)$product['weight_kg']];
+if (!empty($product['autonomy_h']))         $specs[] = ['label' => 'Autonomie (h)', 'value' => (string)$product['autonomy_h']];
+if (!empty($product['max_user_weight_kg'])) $specs[] = ['label' => 'Charge (kg)', 'value' => (string)$product['max_user_weight_kg']];
 
-/** Ces tables n’existent pas forcément dans ta DB actuelle : on laisse vide */
-$downloads  = [];
-$use_cases  = [];
+/** Ces tables n’existent pas forcément : on laisse vide */
+$downloads = [];
+$use_cases = [];
 
-/** ALTERNATIVES (autres produits même catégorie) */
+/** ALTERNATIVES */
 $alternativesStmt = $pdo->prepare("
 SELECT
   pi2.title AS alt_name,
   pi2.slug  AS alt_slug,
   ci2.name  AS tag,
-  SUBSTRING(REPLACE(REPLACE(pi2.description, '\r',' '), '\n',' '), 1, 120) AS summary,
+  SUBSTRING(REPLACE(REPLACE(pi2.description, '\\r',' '), '\\n',' '), 1, 120) AS summary,
   pv2.price AS price,
   pm2.url   AS image
 FROM products p2
@@ -164,16 +191,19 @@ $alternatives = $alternativesStmt->fetchAll(PDO::FETCH_ASSOC);
 /** Résumé affiché */
 $summaryText = trim(strip_tags((string)($product['description'] ?? '')));
 $summaryText = mb_substr(preg_replace("/\s+/", " ", $summaryText), 0, 260);
+
+// Canonical SEO
+$canonical = 'https://exoleton.com' . $base . '/produit/' . urlencode($product['slug']);
 ?>
 <!doctype html>
-<html lang="fr">
+<html lang="<?= htmlspecialchars($lang, ENT_QUOTES, 'UTF-8') ?>">
 <head>
   <meta charset="utf-8">
   <title><?= htmlspecialchars($product['name']) ?> – Exoleton</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="description" content="<?= htmlspecialchars(mb_substr($summaryText, 0, 160)) ?>">
 
-  <link rel="canonical" href="https://www.exoleton.com/produits/<?= urlencode($product['slug']) ?>">
+  <link rel="canonical" href="<?= htmlspecialchars($canonical, ENT_QUOTES, 'UTF-8') ?>">
 
   <link rel="icon" type="image/x-icon" href="/favicon.ico?v=1">
   <link rel="shortcut icon" href="/favicon.ico?v=1">
@@ -183,11 +213,11 @@ $summaryText = mb_substr(preg_replace("/\s+/", " ", $summaryText), 0, 260);
 
   <meta property="og:title" content="<?= htmlspecialchars($product['name']) ?> – <?= htmlspecialchars($product['category']) ?>">
   <meta property="og:description" content="<?= htmlspecialchars(mb_substr($summaryText, 0, 160)) ?>">
-  <meta property="og:image" content="<?= htmlspecialchars($galleryImages[0]) ?>">
+  <meta property="og:image" content="<?= htmlspecialchars(media_url($galleryImages[0])) ?>">
   <meta property="og:type" content="product">
 
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
-  <link rel="stylesheet" href="assets/css/main.css">
+  <link rel="stylesheet" href="/assets/css/main.css">
 
   <style>
     .thumbs img{width:100%;border-radius:.5rem;cursor:pointer;border:2px solid transparent}
@@ -203,8 +233,8 @@ $summaryText = mb_substr(preg_replace("/\s+/", " ", $summaryText), 0, 260);
   <!-- HEADER / NAV -->
   <header class="navbar navbar-expand-lg navbar-light bg-white fixed-top shadow-sm">
     <div class="container">
-      <a class="navbar-brand d-flex align-items-center" href="index.php">
-        <img src="assets/img/logo.png" alt="Exoleton" width="272" height="1000" class="me-2">
+      <a class="navbar-brand d-flex align-items-center" href="<?= $base ?>/">
+        <img src="/assets/img/logo.png" alt="Exoleton" width="272" height="1000" class="me-2">
       </a>
       <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#mainNav" aria-controls="mainNav" aria-expanded="false" aria-label="Basculer la navigation">
         <span class="navbar-toggler-icon"></span>
@@ -212,11 +242,11 @@ $summaryText = mb_substr(preg_replace("/\s+/", " ", $summaryText), 0, 260);
       <nav id="mainNav" class="collapse navbar-collapse">
         <div class="d-lg-flex align-items-lg-center w-100 gap-3">
           <ul class="navbar-nav align-items-lg-center mb-2 mb-lg-0 me-lg-3">
-            <li class="nav-item"><a class="nav-link fw-semibold" href="index.php" data-i18n="nav.home">Accueil</a></li>
-            <li class="nav-item"><a class="nav-link" href="index.php#guides" data-i18n="nav.guides">Guides</a></li>
+            <li class="nav-item"><a class="nav-link fw-semibold" href="<?= $base ?>/" data-i18n="nav.home">Accueil</a></li>
+            <li class="nav-item"><a class="nav-link" href="<?= $base ?>/#guides" data-i18n="nav.guides">Guides</a></li>
           </ul>
 
-          <form class="nav-search flex-grow-1 my-3 my-lg-0" method="get" action="recherche.php" role="search">
+          <form class="nav-search flex-grow-1 my-3 my-lg-0" method="get" action="<?= $base ?>/recherche" role="search">
             <div class="nav-search-bar" role="group" aria-label="Search">
               <div class="nav-search-select-wrap">
                 <label class="visually-hidden" for="navSearchCategory">Category</label>
@@ -254,17 +284,17 @@ $summaryText = mb_substr(preg_replace("/\s+/", " ", $summaryText), 0, 260);
                   Bonjour <?= htmlspecialchars($currentUser['name']); ?>
                 </a>
                 <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userMenu">
-                  <li><a class="dropdown-item" href="account.php">Mon compte</a></li>
+                  <li><a class="dropdown-item" href="<?= $base ?>/account">Mon compte</a></li>
                   <?php if (($currentUser['role'] ?? 'customer') === 'admin'): ?>
-                    <li><a class="dropdown-item" href="admin.php">Administration</a></li>
+                    <li><a class="dropdown-item" href="<?= $base ?>/admin">Administration</a></li>
                   <?php endif; ?>
                   <li><hr class="dropdown-divider"></li>
-                  <li><a class="dropdown-item text-danger" href="logout.php">Se déconnecter</a></li>
+                  <li><a class="dropdown-item text-danger" href="<?= $base ?>/logout">Se déconnecter</a></li>
                 </ul>
               </li>
             <?php else: ?>
               <li class="nav-item ms-lg-3">
-                <a class="btn btn-outline-primary" href="login.php">Connexion</a>
+                <a class="btn btn-outline-primary" href="<?= $base ?>/login">Connexion</a>
               </li>
             <?php endif; ?>
           </ul>
@@ -277,26 +307,29 @@ $summaryText = mb_substr(preg_replace("/\s+/", " ", $summaryText), 0, 260);
 
     <nav class="container" aria-label="breadcrumb">
       <ol class="breadcrumb small mb-2">
-        <li class="breadcrumb-item"><a href="index.php" data-i18n="nav.home">Accueil</a></li>
+        <li class="breadcrumb-item"><a href="<?= $base ?>/" data-i18n="nav.home">Accueil</a></li>
         <li class="breadcrumb-item active" aria-current="page"><?= htmlspecialchars($product['name']) ?></li>
       </ol>
     </nav>
 
-    <!-- Bloc résumé + galerie -->
     <section class="container mb-5">
       <div class="row g-4">
         <div class="col-lg-6">
           <div class="ratio ratio-4x3 mb-3">
-            <img id="mainImage" src="<?= htmlspecialchars($galleryImages[0]) ?>" alt="Vue principale" class="w-100 h-100 rounded-3" style="object-fit:cover">
+            <img id="mainImage" src="<?= htmlspecialchars(media_url($galleryImages[0])) ?>" alt="Vue principale" class="w-100 h-100 rounded-3" style="object-fit:cover">
           </div>
           <div class="row g-2 thumbs" role="listbox" aria-label="Galerie produit">
-            <?php foreach($galleryImages as $idx => $g): ?>
+            <?php foreach($galleryImages as $idx => $g): $gAbs = media_url($g); ?>
               <div class="col-4">
-                <img src="<?= htmlspecialchars($g) ?>" alt="Miniature <?= $idx+1 ?>" class="thumb rounded-3 <?= $idx===0?'active':'' ?>" data-full="<?= htmlspecialchars($g) ?>">
+                <img src="<?= htmlspecialchars($gAbs) ?>"
+                     alt="Miniature <?= (int)($idx+1) ?>"
+                     class="thumb rounded-3 <?= $idx===0?'active':'' ?>"
+                     data-full="<?= htmlspecialchars($gAbs) ?>">
               </div>
             <?php endforeach; ?>
           </div>
         </div>
+
         <div class="col-lg-6">
           <div class="card h-100 shadow-sm">
             <div class="card-body">
@@ -356,7 +389,6 @@ $summaryText = mb_substr(preg_replace("/\s+/", " ", $summaryText), 0, 260);
       </div>
     </section>
 
-    <!-- Use cases (vide si pas de table) -->
     <?php if (!empty($use_cases)): ?>
     <section class="py-5 bg-light border-top">
       <div class="container">
@@ -380,7 +412,6 @@ $summaryText = mb_substr(preg_replace("/\s+/", " ", $summaryText), 0, 260);
     </section>
     <?php endif; ?>
 
-    <!-- Specs + Téléchargements -->
     <section id="specs" class="py-5">
       <div class="container">
         <div class="row g-4">
@@ -431,7 +462,6 @@ $summaryText = mb_substr(preg_replace("/\s+/", " ", $summaryText), 0, 260);
       </div>
     </section>
 
-    <!-- Démo + Devis + Mini ROI (inchangé) -->
     <section id="demo" class="py-5 bg-primary text-white">
       <div class="container">
         <div class="row g-4">
@@ -450,7 +480,11 @@ $summaryText = mb_substr(preg_replace("/\s+/", " ", $summaryText), 0, 260);
                 <label class="form-label" data-i18n="product.form.sector">Secteur</label>
                 <select class="form-select" required>
                   <option value="" data-i18n="product.form.select">Sélectionner</option>
-                  <option data-i18n="product.form.logistics">Logistique</option><option data-i18n="product.form.industry">Industrie</option><option data-i18n="product.form.construction">BTP</option><option data-i18n="product.form.health">Santé</option><option data-i18n="product.form.other">Autre</option>
+                  <option data-i18n="product.form.logistics">Logistique</option>
+                  <option data-i18n="product.form.industry">Industrie</option>
+                  <option data-i18n="product.form.construction">BTP</option>
+                  <option data-i18n="product.form.health">Santé</option>
+                  <option data-i18n="product.form.other">Autre</option>
                 </select>
               </div>
               <div class="col-md-6">
@@ -520,13 +554,12 @@ $summaryText = mb_substr(preg_replace("/\s+/", " ", $summaryText), 0, 260);
       </div>
     </section>
 
-    <!-- Alternatives -->
     <?php if (!empty($alternatives)): ?>
     <section class="py-5 bg-light border-top">
       <div class="container">
         <div class="d-flex align-items-center justify-content-between mb-4">
           <h2 class="h4 mb-0" data-i18n="product.alternatives">Alternatives proches</h2>
-          <a href="index.php#comparateur" class="link-primary" data-i18n="product.compare">Comparer →</a>
+          <a href="<?= $base ?>/#comparateur" class="link-primary" data-i18n="product.compare">Comparer →</a>
         </div>
         <div class="row g-4">
           <?php foreach($alternatives as $alt): ?>
@@ -534,7 +567,9 @@ $summaryText = mb_substr(preg_replace("/\s+/", " ", $summaryText), 0, 260);
               <article class="card h-100">
                 <div class="row g-0 h-100">
                   <div class="col-4">
-                    <img src="<?= htmlspecialchars($alt['image'] ?: 'assets/img/hero-exosquelette.png') ?>" alt="<?= htmlspecialchars($alt['alt_name']) ?>" class="w-100 h-100" style="object-fit:cover">
+                    <img src="<?= htmlspecialchars(media_url($alt['image'] ?: '/assets/img/hero-exosquelette.png')) ?>"
+                         alt="<?= htmlspecialchars($alt['alt_name']) ?>"
+                         class="w-100 h-100" style="object-fit:cover">
                   </div>
                   <div class="col-8">
                     <div class="card-body">
@@ -543,7 +578,7 @@ $summaryText = mb_substr(preg_replace("/\s+/", " ", $summaryText), 0, 260);
                       <p class="small text-muted mb-2"><?= htmlspecialchars($alt['summary']) ?></p>
                       <div class="d-flex align-items-center justify-content-between">
                         <strong class="price"><?= price_html($alt['price'], 'EUR') ?></strong>
-                        <a href="detail.php?slug=<?= urlencode($alt['alt_slug']) ?>" class="btn btn-outline-primary btn-sm" data-i18n="product.view">Voir</a>
+                        <a href="<?= $base ?>/produit/<?= urlencode($alt['alt_slug']) ?>" class="btn btn-outline-primary btn-sm" data-i18n="product.view">Voir</a>
                       </div>
                     </div>
                   </div>
@@ -558,7 +593,6 @@ $summaryText = mb_substr(preg_replace("/\s+/", " ", $summaryText), 0, 260);
 
   </main>
 
-  <!-- Barre sticky (mobile) -->
   <div class="product-sticky">
     <div class="container d-flex align-items-center justify-content-between">
       <div class="me-2">
@@ -572,7 +606,6 @@ $summaryText = mb_substr(preg_replace("/\s+/", " ", $summaryText), 0, 260);
     </div>
   </div>
 
-  <!-- JSON-LD Product -->
   <script type="application/ld+json">
   {
     "@context":"https://schema.org",
@@ -587,14 +620,14 @@ $summaryText = mb_substr(preg_replace("/\s+/", " ", $summaryText), 0, 260);
       "priceCurrency":"EUR",
       "price":"<?= ($product['price'] && (float)$product['price'] > 0) ? (float)$product['price'] : 0 ?>",
       "availability":"https://schema.org/InStock",
-      "url":"https://www.exoleton.com/produits/<?= urlencode($product['slug']) ?>"
+      "url":<?= json_encode($canonical, JSON_UNESCAPED_SLASHES|JSON_UNESCAPED_UNICODE) ?>
     }
   }
   </script>
 
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-  <script src="assets/js/main.js"></script>
-  <script src="assets/js/i18n.js"></script>
+  <script src="/assets/js/main.js"></script>
+  <script src="/assets/js/i18n.js"></script>
   <script>
     // Galerie
     document.querySelectorAll('.thumbs .thumb').forEach(function(el){
@@ -617,7 +650,7 @@ $summaryText = mb_substr(preg_replace("/\s+/", " ", $summaryText), 0, 260);
     ['qte','opt'].forEach(id=>document.getElementById(id)?.addEventListener('input', updateEstimate));
     updateEstimate();
 
-    // Mini ROI (indicatif)
+    // Mini ROI
     function updateROI(){
       const op = parseInt(document.getElementById('op').value||'0',10);
       const at = parseInt(document.getElementById('at').value||'0',10);
@@ -630,8 +663,6 @@ $summaryText = mb_substr(preg_replace("/\s+/", " ", $summaryText), 0, 260);
     }
     ['op','at','lev','qte','opt'].forEach(id=>document.getElementById(id)?.addEventListener('input', updateROI));
     updateROI();
-
-    const y = document.getElementById('year'); if(y) y.textContent = new Date().getFullYear();
   </script>
 </body>
 </html>
