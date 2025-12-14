@@ -29,7 +29,7 @@ $lang = 'fr';
 $products = [];
 if (!$isGuideCategory) {
   $productQuery = "SELECT p.id, p.name, p.slug, p.category, p.summary, p.price, p.currency, p.tags, p.tag,
-                          (SELECT url FROM product_images WHERE product_id = p.id ORDER BY sort_order LIMIT 1) AS main_image
+                          COALESCE((SELECT url FROM product_images WHERE product_id = p.id ORDER BY sort_order LIMIT 1), p.main_image, p.hero_image) AS main_image
                      FROM products p";
   $productWhere = [];
   $productParams = [];

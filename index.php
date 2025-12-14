@@ -33,7 +33,7 @@ $guidesStmt = $pdo->query("SELECT title, summary, image FROM guides ORDER BY pub
 $guides = $guidesStmt->fetchAll();
 
 $announcementsStmt = $pdo->prepare(
-  "SELECT fa.title, fa.message, fa.priority, fa.start_at, fa.end_at, p.slug, p.name AS product_name
+  "SELECT fa.title, fa.message, fa.priority, fa.start_at, fa.end_at, fa.link_url, p.slug, p.name AS product_name
      FROM featured_announcements fa
      LEFT JOIN products p ON p.id = fa.product_id
     WHERE fa.is_active = 1
@@ -219,14 +219,25 @@ $navCategoryOptions = [
               <div class="alert alert-primary h-100 shadow-sm mb-0">
                 <div class="d-flex align-items-start justify-content-between">
                   <div>
-                    <h3 class="h6 mb-1"><?= htmlspecialchars($announcement['product_name']) ?></h3>
+                    <h3 class="h6 mb-1"><?= htmlspecialchars($announcement['title']) ?></h3>
+                    <?php if (!empty($announcement['product_name'])): ?>
+                      <div class="text-muted small">Produit : <?= htmlspecialchars($announcement['product_name']) ?></div>
+                    <?php endif; ?>
                     <?php $endDate = $announcement['end_at'] ? date('d/m/Y', strtotime($announcement['end_at'])) : 'date non spécifiée'; ?>
                     <p class="mb-2 small text-muted">Mise en avant jusqu'au <?= htmlspecialchars($endDate) ?></p>
                   </div>
                   <span class="badge bg-primary-subtle text-primary">Mise en avant</span>
                 </div>
-                <?php if (!empty($announcement['slug'])): ?>
-                  <a class="btn btn-sm btn-outline-primary" href="detail.php?slug=<?= urlencode($announcement['slug']) ?>">Voir le produit</a>
+                <?php
+                  $ctaUrl = '';
+                  if (!empty($announcement['link_url'])) {
+                    $ctaUrl = $announcement['link_url'];
+                  } elseif (!empty($announcement['slug'])) {
+                    $ctaUrl = 'detail.php?slug=' . urlencode($announcement['slug']);
+                  }
+                ?>
+                <?php if ($ctaUrl): ?>
+                  <a class="btn btn-sm btn-outline-primary" href="<?= htmlspecialchars($ctaUrl) ?>">Découvrir</a>
                 <?php endif; ?>
               </div>
             </div>
