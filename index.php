@@ -9,41 +9,58 @@ function price_html($p, $cur = 'EUR')
 
 $lang = 'fr';
 
-$productsStmt = $pdo->prepare(
-  "SELECT
-      p.id,
-      p.slug,
-      p.name,
-      p.category,
-      p.summary,
-      p.main_image,
-      p.brand,
-      p.weight,
-      p.autonomy,
-      p.charge,
-      p.price,
-      p.currency
-    FROM products p
-    ORDER BY p.featured_order ASC, p.id ASC"
-);
-$productsStmt->execute();
-$products = $productsStmt->fetchAll();
+$dbErrors = [];
 
-$guidesStmt = $pdo->query("SELECT title, summary, image FROM guides ORDER BY published_at DESC, id DESC LIMIT 3");
-$guides = $guidesStmt->fetchAll();
+try {
+  $productsStmt = $pdo->prepare(
+    "SELECT
+        p.id,
+        p.slug,
+        p.name,
+        p.category,
+        p.summary,
+        p.main_image,
+        p.brand,
+        p.weight,
+        p.autonomy,
+        p.charge,
+        p.price,
+        p.currency
+      FROM products p
+      ORDER BY p.featured_order ASC, p.id ASC"
+  );
+  $productsStmt->execute();
+  $products = $productsStmt->fetchAll();
+} catch (Throwable $e) {
+  $products = [];
+  $dbErrors[] = "Impossible de charger les produits : " . $e->getMessage();
+}
 
-$announcementsStmt = $pdo->prepare(
-  "SELECT fa.title, fa.message, fa.priority, fa.start_at, fa.end_at, fa.link_url, p.slug, p.name AS product_name
-     FROM featured_announcements fa
-     LEFT JOIN products p ON p.id = fa.product_id
-    WHERE fa.is_active = 1
-      AND (fa.start_at IS NULL OR fa.start_at <= NOW())
-      AND (fa.end_at IS NULL OR fa.end_at >= NOW())
-    ORDER BY fa.priority DESC, fa.start_at DESC, fa.id DESC
-    LIMIT 3"
-);
-$announcementsStmt->execute();
-$announcements = $announcementsStmt->fetchAll();
+try {
+  $guidesStmt = $pdo->query("SELECT title, summary, image FROM guides ORDER BY published_at DESC, id DESC LIMIT 3");
+  $guides = $guidesStmt->fetchAll();
+} catch (Throwable $e) {
+  $guides = [];
+  $dbErrors[] = "Impossible de charger les guides : " . $e->getMessage();
+}
+
+try {
+  $announcementsStmt = $pdo->prepare(
+    "SELECT fa.title, fa.message, fa.priority, fa.start_at, fa.end_at, fa.link_url, p.slug, p.name AS product_name
+       FROM featured_announcements fa
+       LEFT JOIN products p ON p.id = fa.product_id
+      WHERE fa.is_active = 1
+        AND (fa.start_at IS NULL OR fa.start_at <= NOW())
+        AND (fa.end_at IS NULL OR fa.end_at >= NOW())
+      ORDER BY fa.priority DESC, fa.start_at DESC, fa.id DESC
+      LIMIT 3"
+  );
+  $announcementsStmt->execute();
+  $announcements = $announcementsStmt->fetchAll();
+} catch (Throwable $e) {
+  $announcements = [];
+  $dbErrors[] = "Impossible de charger les annonces mises en avant : " . $e->getMessage();
+}
 
 $currentUser = current_user($pdo);
 
@@ -211,6 +228,17 @@ $navCategoryOptions = [
         <h2 class="h3 mb-0" data-i18n="selection.title">Sélection du moment</h2>
         <a href="#comparateur" class="link-primary" data-i18n="selection.link">Comparer les modèles →</a>
       </div>
+
+      <?php if (!empty($dbErrors)): ?>
+        <div class="alert alert-warning" role="alert">
+          <p class="mb-1 fw-semibold">Certaines données n'ont pas pu être chargées.</p>
+          <ul class="mb-0 ps-3">
+            <?php foreach ($dbErrors as $error): ?>
+              <li class="small mb-1"><?= htmlspecialchars($error, ENT_QUOTES, 'UTF-8'); ?></li>
+            <?php endforeach; ?>
+          </ul>
+        </div>
+      <?php endif; ?>
 
       <?php if (!empty($announcements)): ?>
         <div class="row g-3 mb-3">
