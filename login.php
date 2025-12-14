@@ -16,6 +16,20 @@ function sanitize_field(string $value): string
     return trim(filter_var($value, FILTER_SANITIZE_FULL_SPECIAL_CHARS));
 }
 
+function current_request_scheme(): string
+{
+    if (!empty($_SERVER['HTTP_X_FORWARDED_PROTO'])) {
+        return strtolower($_SERVER['HTTP_X_FORWARDED_PROTO']) === 'https' ? 'https' : 'http';
+    }
+
+    $https = $_SERVER['HTTPS'] ?? '';
+    if ($https && strtolower($https) !== 'off') {
+        return 'https';
+    }
+
+    return (!empty($_SERVER['REQUEST_SCHEME']) && strtolower($_SERVER['REQUEST_SCHEME']) === 'https') ? 'https' : 'http';
+}
+
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $action = $_POST['action'] ?? '';
 
@@ -99,7 +113,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $expires = (new DateTime('+1 hour'))->format('Y-m-d H:i:s');
                 $upd = $pdo->prepare('UPDATE users SET reset_token = :token, reset_expires = :expires WHERE id = :id');
                 $upd->execute(['token' => $token, 'expires' => $expires, 'id' => $user['id']]);
-                $resetLink = 'https://' . ($_SERVER['HTTP_HOST'] ?? 'exoleton.local') . '/reset.php?token=' . urlencode($token);
+                $scheme = current_request_scheme();
+                $host = $_SERVER['HTTP_HOST'] ?? 'exoleton.local';
+                $resetLink = sprintf('%s://%s/reset.php?token=%s', $scheme, $host, urlencode($token));
                 $messages[] = 'Un lien de réinitialisation a été généré. Copiez-le pour réinitialiser : ' . htmlspecialchars($resetLink, ENT_QUOTES, 'UTF-8');
             }
 
