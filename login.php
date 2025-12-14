@@ -1,32 +1,63 @@
 <?php
 require __DIR__ . '/auth.php';
 
-$currentUser = current_user($pdo);
-if ($currentUser) {
-    header('Location: account.php');
+/**
+ * login.php (routing i18n)
+ * - Supporte les URLs du style /fr/login, /en/login, etc.
+ * - Corrige toutes les redirections & liens pour respecter le préfixe langue.
+ */
+
+/* =========================
+   Helpers langue / base
+   ========================= */
+const SUPPORTED_LANGS = ['fr','en','de','it','es','pt','nl','pl','ja','zh','ko','ru'];
+
+function normalize_lang($lang) {
+    $lang = is_string($lang) ? strtolower(trim($lang)) : 'fr';
+    if ($lang === 'jp') $lang = 'ja';
+    if ($lang === 'kr') $lang = 'ko';
+    return $lang;
+}
+
+function get_path_lang(): ?string {
+    $path = $_SERVER['REQUEST_URI'] ?? '/';
+    $path = parse_url($path, PHP_URL_PATH) ?: '/';
+    $seg = array_values(array_filter(explode('/', $path), 'strlen'));
+    if (!$seg) return null;
+    $lang = normalize_lang($seg[0]);
+    return in_array($lang, SUPPORTED_LANGS, true) ? $lang : null;
+}
+
+$lang = get_path_lang() ?? 'fr';
+$base = '/' . $lang;
+
+function redirect_to(string $url) {
+    header('Location: ' . $url, true, 302);
     exit;
 }
 
+$currentUser = current_user($pdo);
+if ($currentUser) {
+    redirect_to($base . '/account');
+}
+
+/* =========================
+   Form logic
+   ========================= */
 $errors = [];
 $messages = [];
 $activeView = $_POST['view'] ?? $_GET['view'] ?? 'login';
 
-function sanitize_field(string $value): string
-{
+function sanitize_field(string $value): string {
     return trim(filter_var($value, FILTER_SANITIZE_FULL_SPECIAL_CHARS));
 }
 
-function current_request_scheme(): string
-{
+function current_request_scheme(): string {
     if (!empty($_SERVER['HTTP_X_FORWARDED_PROTO'])) {
         return strtolower($_SERVER['HTTP_X_FORWARDED_PROTO']) === 'https' ? 'https' : 'http';
     }
-
     $https = $_SERVER['HTTPS'] ?? '';
-    if ($https && strtolower($https) !== 'off') {
-        return 'https';
-    }
-
+    if ($https && strtolower($https) !== 'off') return 'https';
     return (!empty($_SERVER['REQUEST_SCHEME']) && strtolower($_SERVER['REQUEST_SCHEME']) === 'https') ? 'https' : 'http';
 }
 
@@ -55,8 +86,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 }
 
                 login_user($user);
-                header('Location: account.php');
-                exit;
+
+                // Optionnel: si tu passes ?next=/fr/produit/... on redirige là
+                $next = $_POST['next'] ?? ($_GET['next'] ?? '');
+                if (is_string($next) && $next !== '' && str_starts_with($next, $base . '/')) {
+                    redirect_to($next);
+                }
+
+                redirect_to($base . '/account');
             } else {
                 $errors[] = 'Identifiants incorrects.';
             }
@@ -92,9 +129,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
                 $userId = $pdo->lastInsertId();
                 login_user(['id' => $userId, 'name' => $name, 'email' => $email, 'role' => 'customer']);
-                $messages[] = 'Votre compte a été créé avec succès.';
-                header('Location: account.php');
-                exit;
+
+                redirect_to($base . '/account');
             }
         }
     } elseif ($action === 'forgot') {
@@ -113,9 +149,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $expires = (new DateTime('+1 hour'))->format('Y-m-d H:i:s');
                 $upd = $pdo->prepare('UPDATE users SET reset_token = :token, reset_expires = :expires WHERE id = :id');
                 $upd->execute(['token' => $token, 'expires' => $expires, 'id' => $user['id']]);
+
                 $scheme = current_request_scheme();
                 $host = $_SERVER['HTTP_HOST'] ?? 'exoleton.local';
-                $resetLink = sprintf('%s://%s/reset.php?token=%s', $scheme, $host, urlencode($token));
+                // IMPORTANT: lien reset avec base langue
+                $resetLink = sprintf('%s://%s%s/reset?token=%s', $scheme, $host, $base, urlencode($token));
                 $messages[] = 'Un lien de réinitialisation a été généré. Copiez-le pour réinitialiser : ' . htmlspecialchars($resetLink, ENT_QUOTES, 'UTF-8');
             }
 
@@ -127,23 +165,24 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 $algoInfo = preferred_password_algorithm();
 ?>
 <!doctype html>
-<html lang="fr">
+<html lang="<?= htmlspecialchars($lang, ENT_QUOTES, 'UTF-8') ?>">
 <head>
   <meta charset="utf-8">
   <title data-i18n="auth.metaTitle">Connexion / Inscription – Exoleton</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="description" content="Connexion, création de compte client ou demande de réinitialisation du mot de passe." data-i18n-description="auth.metaDescription">
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
-  <link rel="stylesheet" href="assets/css/main.css">
+  <link rel="stylesheet" href="/assets/css/main.css">
 </head>
 <body class="bg-light d-flex flex-column min-vh-100">
+
   <header class="navbar navbar-expand-lg navbar-light bg-white fixed-top shadow-sm">
     <div class="container d-flex align-items-center justify-content-between">
-      <a class="navbar-brand d-flex align-items-center" href="index.php">
-        <img src="assets/img/logo.png" alt="Exoleton" width="272" height="1000" class="me-2">
+      <a class="navbar-brand d-flex align-items-center" href="<?= $base ?>/">
+        <img src="/assets/img/logo.png" alt="Exoleton" width="272" height="1000" class="me-2">
       </a>
       <div class="d-flex align-items-center gap-3">
-        <a class="btn btn-outline-primary d-none d-md-inline-flex" href="index.php" data-i18n="nav.home">Accueil</a>
+        <a class="btn btn-outline-primary d-none d-md-inline-flex" href="<?= $base ?>/" data-i18n="nav.home">Accueil</a>
         <label class="visually-hidden" for="languageSwitcherLogin" data-i18n="lang.label">Langue</label>
         <select id="languageSwitcherLogin" class="form-select form-select-sm" data-language-switcher></select>
       </div>
@@ -195,6 +234,14 @@ $algoInfo = preferred_password_algorithm();
                 <form method="post" class="vstack gap-3">
                   <input type="hidden" name="action" value="login">
                   <input type="hidden" name="view" value="login">
+                  <?php
+                    // si tu veux revenir sur une page précise après login:
+                    // ex: /fr/login?next=/fr/produit/slug
+                    $next = $_GET['next'] ?? '';
+                    if (is_string($next) && $next !== '' && str_starts_with($next, $base . '/')) {
+                      echo '<input type="hidden" name="next" value="'.htmlspecialchars($next, ENT_QUOTES, 'UTF-8').'">';
+                    }
+                  ?>
                   <div>
                     <label for="loginEmail" class="form-label" data-i18n="auth.login.emailLabel">Email</label>
                     <input type="email" class="form-control" id="loginEmail" name="email" required autocomplete="email">
@@ -248,6 +295,7 @@ $algoInfo = preferred_password_algorithm();
                 </form>
               </div>
             </div>
+
           </div>
         </div>
       </div>
@@ -259,16 +307,16 @@ $algoInfo = preferred_password_algorithm();
       <div class="row g-4">
         <div class="col-md-4">
           <div class="d-flex align-items-center mb-3">
-            <img src="assets/img/logo.png" alt="Exoleton" width="136" height="50" class="me-2">
+            <img src="/assets/img/logo.png" alt="Exoleton" width="136" height="50" class="me-2">
           </div>
           <p class="text-white-50" data-i18n="footer.mission">Site d’exosquelettes et technologies d’assistance. Notre mission : rendre la mobilité augmentée accessible à tous.</p>
         </div>
         <div class="col-6 col-md-2">
           <h3 class="h6" data-i18n="footer.navigation">Navigation</h3>
           <ul class="list-unstyled">
-            <li><a class="footer-link" href="index.php" data-i18n="nav.home">Accueil</a></li>
-            <li><a class="footer-link" href="#" data-i18n="nav.guides">Guides</a></li>
-            <li><a class="footer-link" href="recherche.php" data-i18n="nav.search">Recherche</a></li>
+            <li><a class="footer-link" href="<?= $base ?>/" data-i18n="nav.home">Accueil</a></li>
+            <li><a class="footer-link" href="<?= $base ?>/#guides" data-i18n="nav.guides">Guides</a></li>
+            <li><a class="footer-link" href="<?= $base ?>/recherche" data-i18n="nav.search">Recherche</a></li>
           </ul>
         </div>
         <div class="col-6 col-md-3">
@@ -301,14 +349,10 @@ $algoInfo = preferred_password_algorithm();
   </footer>
 
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-  <script src="assets/js/i18n.js"></script>
+  <script src="/assets/js/i18n.js"></script>
   <script>
-    // maintenir l'onglet actif après soumission
     const activeTab = document.querySelector('.nav-link.active');
-    if (activeTab) {
-      const tab = new bootstrap.Tab(activeTab);
-      tab.show();
-    }
+    if (activeTab) new bootstrap.Tab(activeTab).show();
   </script>
 </body>
 </html>
