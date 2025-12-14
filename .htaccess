@@ -1,9 +1,19 @@
 RewriteEngine On
 
-# Allow direct access to existing files and directories
+# 0) Base (utile si .htaccess est à la racine du site)
+RewriteBase /
+
+# 1) Laisser passer les fichiers/dossiers existants (assets, images, css, js, etc.)
 RewriteCond %{REQUEST_FILENAME} -f [OR]
 RewriteCond %{REQUEST_FILENAME} -d
 RewriteRule ^ - [L]
 
-# Redirect requests prefixed with a supported language to the base path
-RewriteRule ^(fr|en|de|it|es|pt|nl|pl|jp|zh|kr|ru)/(.*)$ /$2 [L,NC,QSA]
+# 2) Si quelqu’un arrive sur la racine sans langue -> /fr/
+RewriteRule ^$ fr/ [R=301,L]
+
+# 3) Forcer le slash final sur /fr, /en... (SEO) en gardant la query string
+RewriteRule ^(fr|en|de|it|es|pt|nl|pl|ja|zh|ko|ru)$ $1/ [R=301,L,QSA]
+
+# 4) Router toutes les URLs /{lang}/... vers router.php
+#    - path peut être vide (ex: /fr/)
+RewriteRule ^(fr|en|de|it|es|pt|nl|pl|ja|zh|ko|ru)(?:/(.*))?$ router.php?lang=$1&path=$2 [L,QSA,NC]
