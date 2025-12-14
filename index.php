@@ -22,19 +22,23 @@ SELECT
   pv.price,
   'EUR' AS currency,
   pm.url AS main_image,
-  NULL AS type,
+
+  t.value_select AS type,
+
   w.value_decimal AS weight,
   a.value_decimal AS autonomy,
   ch.value_decimal AS charge
 FROM products p
 JOIN products_i18n pi ON pi.product_id = p.id AND pi.lang = :lang
 JOIN categories_i18n ci ON ci.category_id = p.category_id AND ci.lang = :lang
+
 LEFT JOIN (
   SELECT product_id, MIN(price) AS price
   FROM product_variants
   WHERE is_active = 1
   GROUP BY product_id
 ) pv ON pv.product_id = p.id
+
 LEFT JOIN (
   SELECT m1.product_id, m1.url
   FROM media m1
@@ -46,12 +50,19 @@ LEFT JOIN (
   ) mm ON mm.product_id = m1.product_id AND mm.min_sort = m1.sort_order
   WHERE m1.type='image'
 ) pm ON pm.product_id = p.id
+
+LEFT JOIN attributes at ON at.code='assistance_type'
+LEFT JOIN product_attribute_values t ON t.product_id=p.id AND t.attribute_id=at.id
+
 LEFT JOIN attributes aw ON aw.code='weight_kg'
 LEFT JOIN product_attribute_values w ON w.product_id=p.id AND w.attribute_id=aw.id
+
 LEFT JOIN attributes aa ON aa.code='autonomy_h'
 LEFT JOIN product_attribute_values a ON a.product_id=p.id AND a.attribute_id=aa.id
+
 LEFT JOIN attributes ach ON ach.code='max_user_weight_kg'
 LEFT JOIN product_attribute_values ch ON ch.product_id=p.id AND ch.attribute_id=ach.id
+
 WHERE p.is_active = 1
 ORDER BY p.id DESC
 ";
@@ -89,6 +100,7 @@ $navCategoryOptions = [
   'collectivites' => 'Communities',
   'guides' => 'Guides & resources',
 ];
+
 function category_badge(string $category): string {
   $c = mb_strtolower($category);
   if (str_contains($c, 'industri')) return 'success';
