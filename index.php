@@ -1,133 +1,86 @@
 <?php
 require __DIR__ . '/auth.php';
 
-$lang = 'fr'; // tu pourras le rendre dynamique via cookie/GET plus tard
+$lang = 'fr';
 
 function price_html($p, $cur = 'EUR')
 {
   if ($p === null) return 'Sur demande';
   $p = (float)$p;
   if ($p <= 0) return 'Sur demande';
-  $formatted = number_format($p, 0, ',', ' ');
-  return $formatted . ' ' . ($cur === 'EUR' ? '€' : $cur);
+  return number_format($p, 0, ',', ' ') . ' ' . ($cur === 'EUR' ? '€' : $cur);
 }
+
+/** PRODUITS */
+$sqlProducts = "
+SELECT
+  p.id,
+  pi.slug,
+  pi.title AS name,
+  ci.name AS category,
+  SUBSTRING(REPLACE(REPLACE(pi.description, '\r',' '), '\n',' '), 1, 160) AS summary,
+  pv.price,
+  'EUR' AS currency,
+  pm.url AS main_image,
+  NULL AS type,
+  w.value_decimal AS weight,
+  a.value_decimal AS autonomy,
+  ch.value_decimal AS charge
+FROM products p
+JOIN products_i18n pi ON pi.product_id = p.id AND pi.lang = :lang
+JOIN categories_i18n ci ON ci.category_id = p.category_id AND ci.lang = :lang
+LEFT JOIN (
+  SELECT product_id, MIN(price) AS price
+  FROM product_variants
+  WHERE is_active = 1
+  GROUP BY product_id
+) pv ON pv.product_id = p.id
+LEFT JOIN (
+  SELECT m1.product_id, m1.url
+  FROM media m1
+  JOIN (
+    SELECT product_id, MIN(sort_order) AS min_sort
+    FROM media
+    WHERE type='image'
+    GROUP BY product_id
+  ) mm ON mm.product_id = m1.product_id AND mm.min_sort = m1.sort_order
+  WHERE m1.type='image'
+) pm ON pm.product_id = p.id
+LEFT JOIN attributes aw ON aw.code='weight_kg'
+LEFT JOIN product_attribute_values w ON w.product_id=p.id AND w.attribute_id=aw.id
+LEFT JOIN attributes aa ON aa.code='autonomy_h'
+LEFT JOIN product_attribute_values a ON a.product_id=p.id AND a.attribute_id=aa.id
+LEFT JOIN attributes ach ON ach.code='max_user_weight_kg'
+LEFT JOIN product_attribute_values ch ON ch.product_id=p.id AND ch.attribute_id=ach.id
+WHERE p.is_active = 1
+ORDER BY p.id DESC
+";
+$stmt = $pdo->prepare($sqlProducts);
+$stmt->execute([':lang' => $lang]);
+$products = $stmt->fetchAll();
+
+/** GUIDES */
+$guidesStmt = $pdo->query("SELECT title, summary, image FROM guides ORDER BY published_at DESC, id DESC LIMIT 3");
+$guides = $guidesStmt->fetchAll();
+
+/** MISE EN AVANT (featured_items) */
+$sqlFeatured = "
+SELECT fi.priority, pi.slug, pi.title AS product_name
+FROM featured_items fi
+JOIN products p ON p.id = fi.product_id
+JOIN products_i18n pi ON pi.product_id = p.id AND pi.lang = :lang
+WHERE fi.is_active = 1
+  AND fi.start_at <= NOW()
+  AND fi.end_at >= NOW()
+ORDER BY fi.priority DESC, fi.start_at DESC, fi.id DESC
+LIMIT 3
+";
+$stmt = $pdo->prepare($sqlFeatured);
+$stmt->execute([':lang' => $lang]);
+$announcements = $stmt->fetchAll();
 
 $currentUser = current_user($pdo);
 
-/**
- * Produits (schéma réel)
- * - titre/slug/description : products_i18n
- * - catégorie : categories_i18n
- * - prix : MIN(price) des variantes actives
- * - image principale : première image (min sort_order) dans media
- * - comparateur : attributs weight_kg / autonomy_h / max_user_weight_kg (à adapter si tu veux autre chose)
- */
-try {
-  $sqlProducts = "
-  SELECT
-    p.id,
-    pi.slug,
-    pi.title AS name,
-    ci.name AS category,
-    SUBSTRING(REPLACE(REPLACE(pi.description, '\r', ' '), '\n', ' '), 1, 160) AS summary,
-    pv.price,
-    'EUR' AS currency,
-    pm.url AS main_image,
-
-    w.value_decimal AS weight,
-    a.value_decimal AS autonomy,
-    ch.value_decimal AS charge
-
-  FROM products p
-  JOIN products_i18n pi
-    ON pi.product_id = p.id AND pi.lang = :lang
-  JOIN categories_i18n ci
-    ON ci.category_id = p.category_id AND ci.lang = :lang
-
-  LEFT JOIN (
-    SELECT product_id, MIN(price) AS price
-    FROM product_variants
-    WHERE is_active = 1
-    GROUP BY product_id
-  ) pv ON pv.product_id = p.id
-
-  LEFT JOIN (
-    SELECT m1.product_id, m1.url
-    FROM media m1
-    JOIN (
-      SELECT product_id, MIN(sort_order) AS min_sort
-      FROM media
-      WHERE type='image'
-      GROUP BY product_id
-    ) mm ON mm.product_id = m1.product_id AND mm.min_sort = m1.sort_order
-    WHERE m1.type='image'
-  ) pm ON pm.product_id = p.id
-
-  LEFT JOIN attributes aw ON aw.code='weight_kg'
-  LEFT JOIN product_attribute_values w
-    ON w.product_id = p.id AND w.attribute_id = aw.id
-
-  LEFT JOIN attributes aa ON aa.code='autonomy_h'
-  LEFT JOIN product_attribute_values a
-    ON a.product_id = p.id AND a.attribute_id = aa.id
-
-  LEFT JOIN attributes ach ON ach.code='max_user_weight_kg'
-  LEFT JOIN product_attribute_values ch
-    ON ch.product_id = p.id AND ch.attribute_id = ach.id
-
-  WHERE p.is_active = 1
-  ORDER BY p.id DESC
-  ";
-
-  $stmt = $pdo->prepare($sqlProducts);
-  $stmt->execute([':lang' => $lang]);
-  $products = $stmt->fetchAll();
-} catch (Throwable $e) {
-  http_response_code(500);
-  // En prod, log uniquement. Là on affiche minimalement.
-  echo "<pre>Products query failed: " . htmlspecialchars($e->getMessage(), ENT_QUOTES, 'UTF-8') . "</pre>";
-  exit;
-}
-
-/**
- * Guides (ok avec ton schéma)
- */
-try {
-  $guidesStmt = $pdo->query("SELECT title, summary, image FROM guides ORDER BY published_at DESC, id DESC LIMIT 3");
-  $guides = $guidesStmt->fetchAll();
-} catch (Throwable $e) {
-  $guides = [];
-}
-
-/**
- * Mise en avant (remplace featured_announcements -> featured_items)
- * Affiche juste des produits mis en avant, sans title/message custom.
- */
-try {
-  $sqlFeatured = "
-  SELECT
-    fi.priority,
-    pi.slug,
-    pi.title AS product_name
-  FROM featured_items fi
-  JOIN products p ON p.id = fi.product_id
-  JOIN products_i18n pi ON pi.product_id = p.id AND pi.lang = :lang
-  WHERE fi.is_active = 1
-    AND fi.start_at <= NOW()
-    AND fi.end_at >= NOW()
-  ORDER BY fi.priority DESC, fi.start_at DESC, fi.id DESC
-  LIMIT 3
-  ";
-  $stmt = $pdo->prepare($sqlFeatured);
-  $stmt->execute([':lang' => $lang]);
-  $featuredItems = $stmt->fetchAll();
-} catch (Throwable $e) {
-  $featuredItems = [];
-}
-
-/**
- * Options recherche (valeurs = codes DB)
- */
 $navCategoryOptions = [
   '' => 'All categories',
   'industriels_professionnels' => 'Industrial',
@@ -136,16 +89,16 @@ $navCategoryOptions = [
   'collectivites' => 'Communities',
   'guides' => 'Guides & resources',
 ];
-
-function safe_badge_class(string $categoryName): string
-{
-  $c = mb_strtolower($categoryName);
+function category_badge(string $category): string {
+  $c = mb_strtolower($category);
   if (str_contains($c, 'industri')) return 'success';
   if (str_contains($c, 'médical') || str_contains($c, 'medical')) return 'info';
   if (str_contains($c, 'collectiv')) return 'primary';
+  if (str_contains($c, 'personnel') || str_contains($c, 'sport')) return 'secondary';
   return 'secondary';
 }
 ?>
+
 <!doctype html>
 <html lang="fr">
 <head>
@@ -154,20 +107,27 @@ function safe_badge_class(string $categoryName): string
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="description" content="Découvrez, comparez et accédez aux meilleures solutions d’exosquelettes et technologies d’assistance pour professionnels, collectivités et particuliers." data-i18n-description="meta.description">
 
+  <!-- Canonical (ok de laisser, n'affecte pas le chargement local) -->
   <link rel="canonical" href="https://exoleton.com/">
 
-  <link rel="icon" type="image/x-icon" href="/favicon.ico?v=1">
-  <link rel="shortcut icon" href="/favicon.ico?v=1">
-  <link rel="icon" type="image/png" sizes="32x32" href="/assets/img/ico.png">
-  <link rel="icon" type="image/png" sizes="192x192" href="/assets/img/ico.png">
-  <link rel="apple-touch-icon" href="/assets/img/ico.png">
+  <!-- Favicons (CHEMINS RELATIFS) -->
+<link rel="icon" type="image/x-icon" href="/favicon.ico?v=1">
+<link rel="shortcut icon" href="/favicon.ico?v=1">
+<link rel="icon" type="image/png" sizes="32x32" href="/assets/img/ico.png">
+<link rel="icon" type="image/png" sizes="192x192" href="/assets/img/ico.png">
+<link rel="apple-touch-icon" href="/assets/img/ico.png">
 
+
+  <!-- Open Graph (CHEMIN RELATIF) -->
   <meta property="og:title" content="Exoleton – La mobilité augmentée, accessible à tous" data-i18n-property="og:title:meta.ogTitle">
   <meta property="og:description" content="Site de référence pour exosquelettes et assistances physiques." data-i18n-property="og:description:meta.ogDescription">
   <meta property="og:image" content="assets/img/hero-exosquelette.jpg">
   <meta property="og:type" content="website">
 
+  <!-- Bootstrap 5 (CDN) -->
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+
+  <!-- Feuille de style custom (CHEMIN RELATIF) -->
   <link rel="stylesheet" href="assets/css/main.css">
 </head>
 <body>
@@ -177,6 +137,7 @@ function safe_badge_class(string $categoryName): string
     <div class="container">
       <a class="navbar-brand d-flex align-items-center" href="index.php">
         <img src="assets/img/logo.png" alt="Exoleton" width="272" height="1000" class="me-2">
+        <!--<span class="fw-semibold">Movalya</span>-->
       </a>
       <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#mainNav" aria-controls="mainNav" aria-expanded="false" aria-label="Basculer la navigation">
         <span class="navbar-toggler-icon"></span>
@@ -187,7 +148,6 @@ function safe_badge_class(string $categoryName): string
             <li class="nav-item"><a class="nav-link fw-semibold" href="index.php" data-i18n="nav.home">Accueil</a></li>
             <li class="nav-item"><a class="nav-link" href="#guides" data-i18n="nav.guides">Guides</a></li>
           </ul>
-
           <form class="nav-search flex-grow-1 my-3 my-lg-0" method="get" action="recherche.php" role="search">
             <div class="nav-search-bar" role="group" aria-label="Search">
               <div class="nav-search-select-wrap">
@@ -213,32 +173,31 @@ function safe_badge_class(string $categoryName): string
           </form>
 
           <ul class="navbar-nav ms-lg-auto mb-2 mb-lg-0 align-items-lg-center">
-            <li class="nav-item ms-lg-3">
-              <label class="visually-hidden" for="languageSwitcher" data-i18n="lang.label">Langue</label>
-              <select id="languageSwitcher" class="form-select form-select-sm" data-language-switcher></select>
+          <li class="nav-item ms-lg-3">
+            <label class="visually-hidden" for="languageSwitcher" data-i18n="lang.label">Langue</label>
+            <select id="languageSwitcher" class="form-select form-select-sm" data-language-switcher>
+            </select>
+          </li>
+          <?php if ($currentUser): ?>
+            <li class="nav-item dropdown ms-lg-3">
+              <a class="nav-link dropdown-toggle" href="#" id="userMenu" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                Bonjour <?= htmlspecialchars($currentUser['name']); ?>
+              </a>
+              <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userMenu">
+                <li><a class="dropdown-item" href="account.php">Mon compte</a></li>
+                <?php if (($currentUser['role'] ?? 'customer') === 'admin'): ?>
+                  <li><a class="dropdown-item" href="admin.php">Administration</a></li>
+                <?php endif; ?>
+                <li><hr class="dropdown-divider"></li>
+                <li><a class="dropdown-item text-danger" href="logout.php">Se déconnecter</a></li>
+              </ul>
             </li>
-
-            <?php if ($currentUser): ?>
-              <li class="nav-item dropdown ms-lg-3">
-                <a class="nav-link dropdown-toggle" href="#" id="userMenu" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                  Bonjour <?= htmlspecialchars($currentUser['name'] ?? '', ENT_QUOTES, 'UTF-8'); ?>
-                </a>
-                <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userMenu">
-                  <li><a class="dropdown-item" href="account.php">Mon compte</a></li>
-                  <?php if (($currentUser['role'] ?? 'customer') === 'admin'): ?>
-                    <li><a class="dropdown-item" href="admin.php">Administration</a></li>
-                  <?php endif; ?>
-                  <li><hr class="dropdown-divider"></li>
-                  <li><a class="dropdown-item text-danger" href="logout.php">Se déconnecter</a></li>
-                </ul>
-              </li>
-            <?php else: ?>
-              <li class="nav-item ms-lg-3">
-                <a class="btn btn-outline-primary" href="login.php">Connexion</a>
-              </li>
-            <?php endif; ?>
-          </ul>
-
+          <?php else: ?>
+            <li class="nav-item ms-lg-3">
+              <a class="btn btn-outline-primary" href="login.php">Connexion</a>
+            </li>
+          <?php endif; ?>
+        </ul>
         </div>
       </nav>
     </div>
@@ -296,22 +255,33 @@ function safe_badge_class(string $categoryName): string
         <a href="#comparateur" class="link-primary" data-i18n="selection.link">Comparer les modèles →</a>
       </div>
 
-      <?php if (!empty($featuredItems)): ?>
+      <?php if (!empty($announcements)): ?>
         <div class="row g-3 mb-3">
-          <?php foreach ($featuredItems as $fi): ?>
+          <?php foreach ($announcements as $announcement): ?>
             <div class="col-md-4">
               <div class="alert alert-primary h-100 shadow-sm mb-0">
-                <div class="d-flex align-items-start justify-content-between">
-                  <div>
-                    <h3 class="h6 mb-1"><?= htmlspecialchars($fi['product_name'] ?? 'Produit', ENT_QUOTES, 'UTF-8'); ?></h3>
-                    <p class="mb-2 small text-muted">Produit mis en avant</p>
-                  </div>
-                  <span class="badge bg-primary-subtle text-primary">Mise en avant</span>
-                </div>
-                <?php if (!empty($fi['slug'])): ?>
-                  <a class="btn btn-sm btn-outline-primary" href="detail.php?slug=<?= urlencode($fi['slug']); ?>">Voir le produit</a>
-                <?php endif; ?>
-              </div>
+  <div class="d-flex align-items-start justify-content-between">
+<div>
+  <h3 class="h6 mb-1">
+<?= htmlspecialchars($announcement['product_name'] ?? 'Produit mis en avant', ENT_QUOTES, 'UTF-8') ?>
+  </h3>
+  <p class="mb-2 small text-muted">
+Produit mis en avant
+  </p>
+</div>
+<span class="badge bg-primary-subtle text-primary">Mise en avant</span>
+  </div>
+
+  <?php if (!empty($announcement['slug'])): ?>
+<a class="btn btn-sm btn-outline-primary"
+   href="detail.php?slug=<?= urlencode($announcement['slug']) ?>">
+  Voir le produit
+</a>
+  <?php else: ?>
+<span class="text-muted small">Lien indisponible</span>
+  <?php endif; ?>
+</div>
+
             </div>
           <?php endforeach; ?>
         </div>
@@ -322,28 +292,18 @@ function safe_badge_class(string $categoryName): string
           <div class="col-md-4">
             <article class="card product-card h-100">
               <?php if (!empty($product['main_image'])): ?>
-                <img src="<?= htmlspecialchars($product['main_image'], ENT_QUOTES, 'UTF-8'); ?>" class="card-img-top" alt="<?= htmlspecialchars($product['name'] ?? 'Produit', ENT_QUOTES, 'UTF-8'); ?>">
+                <img src="<?= htmlspecialchars($product['main_image']) ?>" class="card-img-top" alt="<?= htmlspecialchars($product['name']) ?>">
               <?php endif; ?>
-
               <div class="card-body">
-                <?php $cat = (string)($product['category'] ?? ''); ?>
-                <span class="badge bg-<?= safe_badge_class($cat); ?> mb-2">
-                  <?= htmlspecialchars($cat ?: '—', ENT_QUOTES, 'UTF-8'); ?>
-                </span>
+                <span class="badge bg-<?= category_badge($product['category'] ?? '') ?> mb-2">
+  <?= htmlspecialchars($product['category'] ?? '—', ENT_QUOTES, 'UTF-8') ?>
+</span>
 
-                <h3 class="h5 card-title mb-1"><?= htmlspecialchars($product['name'] ?? '—', ENT_QUOTES, 'UTF-8'); ?></h3>
-
-                <?php if (!empty($product['summary'])): ?>
-                  <p class="text-muted small mb-3"><?= htmlspecialchars($product['summary'], ENT_QUOTES, 'UTF-8'); ?>…</p>
-                <?php else: ?>
-                  <p class="text-muted small mb-3">—</p>
-                <?php endif; ?>
-
+                <h3 class="h5 card-title mb-1"><?= htmlspecialchars($product['name']) ?></h3>
+                <p class="text-muted small mb-3"><?= htmlspecialchars($product['summary']) ?></p>
                 <div class="d-flex align-items-center justify-content-between">
-                  <strong class="price"><?= price_html($product['price'], $product['currency'] ?? 'EUR'); ?></strong>
-                  <?php if (!empty($product['slug'])): ?>
-                    <a href="detail.php?slug=<?= urlencode($product['slug']); ?>" class="btn btn-outline-primary btn-sm" data-i18n="selection.details">Voir les détails</a>
-                  <?php endif; ?>
+                  <strong class="price"><?= price_html((int)$product['price'], $product['currency']) ?></strong>
+                  <a href="detail.php?slug=<?= urlencode($product['slug']) ?>" class="btn btn-outline-primary btn-sm" data-i18n="selection.details">Voir les détails</a>
                 </div>
               </div>
             </article>
@@ -378,11 +338,11 @@ function safe_badge_class(string $categoryName): string
               <tbody>
                 <?php foreach ($products as $product): ?>
                   <tr>
-                    <td><?= htmlspecialchars($product['name'] ?? '—', ENT_QUOTES, 'UTF-8'); ?></td>
-                    <td><?= htmlspecialchars($product['category'] ?? '—', ENT_QUOTES, 'UTF-8'); ?></td>
-                    <td><?= $product['weight'] !== null ? htmlspecialchars((string)$product['weight'], ENT_QUOTES, 'UTF-8') . ' kg' : '—'; ?></td>
-                    <td><?= $product['autonomy'] !== null ? htmlspecialchars((string)$product['autonomy'], ENT_QUOTES, 'UTF-8') . ' h' : '—'; ?></td>
-                    <td><?= $product['charge'] !== null ? htmlspecialchars((string)$product['charge'], ENT_QUOTES, 'UTF-8') . ' kg' : '—'; ?></td>
+                    <td><?= htmlspecialchars($product['name']) ?></td>
+                    <td><?= htmlspecialchars($product['type'] ?: '—') ?></td>
+                    <td><?= htmlspecialchars($product['weight'] ?: '—') ?></td>
+                    <td><?= htmlspecialchars($product['autonomy'] ?: '—') ?></td>
+                    <td><?= htmlspecialchars($product['charge'] ?: '—') ?></td>
                   </tr>
                 <?php endforeach; ?>
               </tbody>
@@ -406,11 +366,11 @@ function safe_badge_class(string $categoryName): string
           <div class="col-md-4">
             <article class="card h-100 shadow-sm">
               <?php if (!empty($guide['image'])): ?>
-                <img src="<?= htmlspecialchars($guide['image'], ENT_QUOTES, 'UTF-8'); ?>" class="card-img-top" alt="<?= htmlspecialchars($guide['title'] ?? 'Guide', ENT_QUOTES, 'UTF-8'); ?>">
+                <img src="<?= htmlspecialchars($guide['image']) ?>" class="card-img-top" alt="<?= htmlspecialchars($guide['title']) ?>">
               <?php endif; ?>
               <div class="card-body">
-                <h3 class="h5"><?= htmlspecialchars($guide['title'] ?? '—', ENT_QUOTES, 'UTF-8'); ?></h3>
-                <p class="text-muted"><?= htmlspecialchars($guide['summary'] ?? '—', ENT_QUOTES, 'UTF-8'); ?></p>
+                <h3 class="h5"><?= htmlspecialchars($guide['title']) ?></h3>
+                <p class="text-muted"><?= htmlspecialchars($guide['summary']) ?></p>
                 <a class="stretched-link" href="#"></a>
               </div>
             </article>
@@ -442,6 +402,7 @@ function safe_badge_class(string $categoryName): string
         <div class="col-md-4">
           <div class="d-flex align-items-center mb-3">
             <img src="assets/img/logo.png" alt="Exoleton" width="136" height="50" class="me-2">
+            <!--<strong>Movalya</strong>-->
           </div>
           <p class="text-white-50" data-i18n="footer.mission">Site d’exosquelettes et technologies d’assistance. Notre mission : rendre la mobilité augmentée accessible à tous.</p>
         </div>
