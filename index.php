@@ -12,42 +12,37 @@ $lang = 'fr';
 $productsStmt = $pdo->prepare(
   "SELECT
       p.id,
-      pi.slug,
-      pi.title AS name,
-      COALESCE(ci.name, c.code) AS category,
-      COALESCE(pi.meta_description, SUBSTRING(pi.description, 1, 160)) AS summary,
-      (SELECT m.url FROM media m WHERE m.product_id = p.id AND m.type = 'image' ORDER BY m.sort_order LIMIT 1) AS main_image,
+      p.slug,
+      p.name,
+      p.category,
+      p.summary,
+      p.main_image,
       p.brand,
-      (SELECT pav.value_decimal FROM product_attribute_values pav JOIN attributes a ON a.id = pav.attribute_id WHERE pav.product_id = p.id AND a.code = 'weight_kg' LIMIT 1) AS weight,
-      (SELECT pav.value_decimal FROM product_attribute_values pav JOIN attributes a ON a.id = pav.attribute_id WHERE pav.product_id = p.id AND a.code = 'autonomy_h' LIMIT 1) AS autonomy,
-      (SELECT pav.value_decimal FROM product_attribute_values pav JOIN attributes a ON a.id = pav.attribute_id WHERE pav.product_id = p.id AND a.code = 'max_user_weight_kg' LIMIT 1) AS charge,
-      MIN(v.price) AS price,
-      'EUR' AS currency
+      p.weight,
+      p.autonomy,
+      p.charge,
+      p.price,
+      p.currency
     FROM products p
-    INNER JOIN products_i18n pi ON pi.product_id = p.id AND pi.lang = :lang
-    LEFT JOIN categories c ON c.id = p.category_id
-    LEFT JOIN categories_i18n ci ON ci.category_id = c.id AND ci.lang = :lang
-    LEFT JOIN product_variants v ON v.product_id = p.id AND v.is_active = 1
-    WHERE p.is_active = 1
-    GROUP BY p.id, pi.slug, pi.title, ci.name, pi.meta_description, pi.description, p.brand"
+    ORDER BY p.featured_order ASC, p.id ASC"
 );
-$productsStmt->execute(['lang' => $lang]);
+$productsStmt->execute();
 $products = $productsStmt->fetchAll();
 
 $guidesStmt = $pdo->query("SELECT title, summary, image FROM guides ORDER BY published_at DESC, id DESC LIMIT 3");
 $guides = $guidesStmt->fetchAll();
 
 $announcementsStmt = $pdo->prepare(
-  "SELECT fi.priority, fi.start_at, fi.end_at, pi.slug, pi.title AS product_name
-     FROM featured_items fi
-     INNER JOIN products_i18n pi ON pi.product_id = fi.product_id AND pi.lang = :lang
-    WHERE fi.is_active = 1
-      AND fi.start_at <= NOW()
-      AND fi.end_at >= NOW()
-    ORDER BY fi.priority DESC, fi.start_at DESC, fi.id DESC
+  "SELECT fa.title, fa.message, fa.priority, fa.start_at, fa.end_at, p.slug, p.name AS product_name
+     FROM featured_announcements fa
+     LEFT JOIN products p ON p.id = fa.product_id
+    WHERE fa.is_active = 1
+      AND (fa.start_at IS NULL OR fa.start_at <= NOW())
+      AND (fa.end_at IS NULL OR fa.end_at >= NOW())
+    ORDER BY fa.priority DESC, fa.start_at DESC, fa.id DESC
     LIMIT 3"
 );
-$announcementsStmt->execute(['lang' => $lang]);
+$announcementsStmt->execute();
 $announcements = $announcementsStmt->fetchAll();
 
 $currentUser = current_user($pdo);
