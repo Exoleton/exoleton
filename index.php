@@ -7,13 +7,47 @@ function price_html($p, $cur = 'EUR')
   return number_format($p, 0, ',', ' ') . ' ' . ($cur === 'EUR' ? '€' : $cur);
 }
 
-$productsStmt = $pdo->query("SELECT id, slug, name, category, tag, price, currency, summary, main_image, type, weight, autonomy, charge FROM products ORDER BY featured_order, name");
+$lang = 'fr';
+
+$productsStmt = $pdo->prepare(
+  "SELECT
+      p.id,
+      pi.slug,
+      pi.title AS name,
+      COALESCE(ci.name, c.code) AS category,
+      COALESCE(pi.meta_description, SUBSTRING(pi.description, 1, 160)) AS summary,
+      (SELECT m.url FROM media m WHERE m.product_id = p.id AND m.type = 'image' ORDER BY m.sort_order LIMIT 1) AS main_image,
+      p.brand,
+      (SELECT pav.value_decimal FROM product_attribute_values pav JOIN attributes a ON a.id = pav.attribute_id WHERE pav.product_id = p.id AND a.code = 'weight_kg' LIMIT 1) AS weight,
+      (SELECT pav.value_decimal FROM product_attribute_values pav JOIN attributes a ON a.id = pav.attribute_id WHERE pav.product_id = p.id AND a.code = 'autonomy_h' LIMIT 1) AS autonomy,
+      (SELECT pav.value_decimal FROM product_attribute_values pav JOIN attributes a ON a.id = pav.attribute_id WHERE pav.product_id = p.id AND a.code = 'max_user_weight_kg' LIMIT 1) AS charge,
+      MIN(v.price) AS price,
+      'EUR' AS currency
+    FROM products p
+    INNER JOIN products_i18n pi ON pi.product_id = p.id AND pi.lang = :lang
+    LEFT JOIN categories c ON c.id = p.category_id
+    LEFT JOIN categories_i18n ci ON ci.category_id = c.id AND ci.lang = :lang
+    LEFT JOIN product_variants v ON v.product_id = p.id AND v.is_active = 1
+    WHERE p.is_active = 1
+    GROUP BY p.id, pi.slug, pi.title, ci.name, pi.meta_description, pi.description, p.brand"
+);
+$productsStmt->execute(['lang' => $lang]);
 $products = $productsStmt->fetchAll();
 
 $guidesStmt = $pdo->query("SELECT title, summary, image FROM guides ORDER BY published_at DESC, id DESC LIMIT 3");
 $guides = $guidesStmt->fetchAll();
 
-$announcementsStmt = $pdo->query("SELECT fa.title, fa.message, fa.link_url, fa.priority, p.slug, p.name AS product_name FROM featured_announcements fa LEFT JOIN products p ON p.id = fa.product_id WHERE fa.is_active = 1 AND (fa.start_at IS NULL OR fa.start_at <= NOW()) AND (fa.end_at IS NULL OR fa.end_at >= NOW()) ORDER BY fa.priority DESC, fa.start_at DESC, fa.id DESC LIMIT 3");
+$announcementsStmt = $pdo->prepare(
+  "SELECT fi.priority, fi.start_at, fi.end_at, pi.slug, pi.title AS product_name
+     FROM featured_items fi
+     INNER JOIN products_i18n pi ON pi.product_id = fi.product_id AND pi.lang = :lang
+    WHERE fi.is_active = 1
+      AND fi.start_at <= NOW()
+      AND fi.end_at >= NOW()
+    ORDER BY fi.priority DESC, fi.start_at DESC, fi.id DESC
+    LIMIT 3"
+);
+$announcementsStmt->execute(['lang' => $lang]);
 $announcements = $announcementsStmt->fetchAll();
 
 $currentUser = current_user($pdo);
@@ -190,14 +224,13 @@ $navCategoryOptions = [
               <div class="alert alert-primary h-100 shadow-sm mb-0">
                 <div class="d-flex align-items-start justify-content-between">
                   <div>
-                    <h3 class="h6 mb-1"><?= htmlspecialchars($announcement['title']) ?></h3>
-                    <p class="mb-2 small text-muted"><?= htmlspecialchars($announcement['message'] ?? '') ?></p>
+                    <h3 class="h6 mb-1"><?= htmlspecialchars($announcement['product_name']) ?></h3>
+                    <?php $endDate = $announcement['end_at'] ? date('d/m/Y', strtotime($announcement['end_at'])) : 'date non spécifiée'; ?>
+                    <p class="mb-2 small text-muted">Mise en avant jusqu'au <?= htmlspecialchars($endDate) ?></p>
                   </div>
                   <span class="badge bg-primary-subtle text-primary">Mise en avant</span>
                 </div>
-                <?php if (!empty($announcement['link_url'])): ?>
-                  <a class="btn btn-sm btn-primary" href="<?= htmlspecialchars($announcement['link_url']) ?>" target="_blank" rel="noopener">Découvrir</a>
-                <?php elseif (!empty($announcement['slug'])): ?>
+                <?php if (!empty($announcement['slug'])): ?>
                   <a class="btn btn-sm btn-outline-primary" href="detail.php?slug=<?= urlencode($announcement['slug']) ?>">Voir le produit</a>
                 <?php endif; ?>
               </div>
@@ -214,7 +247,7 @@ $navCategoryOptions = [
                 <img src="<?= htmlspecialchars($product['main_image']) ?>" class="card-img-top" alt="<?= htmlspecialchars($product['name']) ?>">
               <?php endif; ?>
               <div class="card-body">
-                <span class="badge bg-<?= $product['tag']==='Industriel'?'success':($product['tag']==='Médical'?'info':'secondary') ?> mb-2"><?= htmlspecialchars($product['tag']) ?></span>
+                <span class="badge bg-primary-subtle text-primary mb-2"><?= htmlspecialchars($product['category'] ?? 'Catalogue') ?></span>
                 <h3 class="h5 card-title mb-1"><?= htmlspecialchars($product['name']) ?></h3>
                 <p class="text-muted small mb-3"><?= htmlspecialchars($product['summary']) ?></p>
                 <div class="d-flex align-items-center justify-content-between">
@@ -245,20 +278,20 @@ $navCategoryOptions = [
               <thead class="table-light">
                 <tr>
                   <th data-i18n="comparator.table.model">Modèle</th>
-                  <th data-i18n="comparator.table.type">Type</th>
-                  <th data-i18n="comparator.table.weight">Poids</th>
-                  <th data-i18n="comparator.table.autonomy">Autonomie</th>
-                  <th data-i18n="comparator.table.charge">Charge</th>
+                  <th data-i18n="comparator.table.type">Marque</th>
+                  <th data-i18n="comparator.table.weight">Poids (kg)</th>
+                  <th data-i18n="comparator.table.autonomy">Autonomie (h)</th>
+                  <th data-i18n="comparator.table.charge">Charge max (kg)</th>
                 </tr>
               </thead>
               <tbody>
                 <?php foreach ($products as $product): ?>
                   <tr>
                     <td><?= htmlspecialchars($product['name']) ?></td>
-                    <td><?= htmlspecialchars($product['type'] ?: '—') ?></td>
-                    <td><?= htmlspecialchars($product['weight'] ?: '—') ?></td>
-                    <td><?= htmlspecialchars($product['autonomy'] ?: '—') ?></td>
-                    <td><?= htmlspecialchars($product['charge'] ?: '—') ?></td>
+                    <td><?= htmlspecialchars($product['brand'] ?: '—') ?></td>
+                    <td><?= htmlspecialchars($product['weight'] ?? '—') ?></td>
+                    <td><?= htmlspecialchars($product['autonomy'] ?? '—') ?></td>
+                    <td><?= htmlspecialchars($product['charge'] ?? '—') ?></td>
                   </tr>
                 <?php endforeach; ?>
               </tbody>
