@@ -72,7 +72,7 @@ SELECT
   pi.slug,
   pi.title AS name,
   ci.name AS category,
-  SUBSTRING(REPLACE(REPLACE(pi.description, '\r',' '), '\n',' '), 1, 160) AS summary,
+  SUBSTRING(REPLACE(REPLACE(pi.description, '\\r',' '), '\\n',' '), 1, 160) AS summary,
   pv.price,
   'EUR' AS currency,
   pm.url AS main_image,
@@ -162,14 +162,18 @@ $announcements = $stmt->fetchAll();
 
 $currentUser = current_user($pdo);
 
-$navCategoryOptions = [
-  '' => 'All categories',
-  'industriels_professionnels' => 'Industrial',
-  'medical' => 'Medical',
-  'personnel_sport' => 'Personal / Sport',
-  'collectivites' => 'Communities',
-  'guides' => 'Guides & resources',
-];
+// Catégories depuis la DB (i18n) — avec categories.code
+$catStmt = $pdo->prepare("
+  SELECT c.code, ci.name
+  FROM categories c
+  JOIN categories_i18n ci ON ci.category_id = c.id AND ci.lang = :lang
+  WHERE c.is_active = 1
+  ORDER BY COALESCE(c.sort_order, 999999) ASC, ci.name ASC
+");
+$catStmt->execute([':lang' => $lang]);
+$navCategories = $catStmt->fetchAll(PDO::FETCH_ASSOC);
+
+
 
 function category_badge(string $category): string {
   $c = mb_strtolower($category);
@@ -241,10 +245,17 @@ $canonical = 'https://exoleton.com' . $base . '/';
               <div class="nav-search-select-wrap">
                 <label class="visually-hidden" for="navSearchCategory">Category</label>
                 <select id="navSearchCategory" name="cat" class="form-select nav-search-select">
-                  <?php foreach ($navCategoryOptions as $value => $label): ?>
-                    <option value="<?= htmlspecialchars($value, ENT_QUOTES, 'UTF-8'); ?>"><?= htmlspecialchars($label, ENT_QUOTES, 'UTF-8'); ?></option>
-                  <?php endforeach; ?>
-                </select>
+  <option value="" data-i18n="search.allCategories">All categories</option>
+
+  <?php foreach ($navCategories as $c): ?>
+<option value="<?= htmlspecialchars($c['code'], ENT_QUOTES, 'UTF-8') ?>">
+  <?= htmlspecialchars($c['name'], ENT_QUOTES, 'UTF-8') ?>
+</option>
+  <?php endforeach; ?>
+</select>
+
+
+
                 <span class="nav-search-caret" aria-hidden="true">▾</span>
               </div>
               <div class="nav-search-input">
