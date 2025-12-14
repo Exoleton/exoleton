@@ -25,19 +25,31 @@ $navCategoryOptions = $categoryOptions;
 
 $isGuideCategory = in_array($category, ['Guide', 'Guides', 'Guides & ressources'], true);
 
+$lang = 'fr';
 $products = [];
 if (!$isGuideCategory) {
-  $productQuery = "SELECT slug, name, tag, category, summary, price, currency, main_image, tags FROM products";
-  $productWhere = [];
-  $productParams = [];
+  $productQuery = "SELECT p.id, pi.title AS name, pi.slug, COALESCE(ci.name, c.code) AS category, COALESCE(pi.meta_description, SUBSTRING(pi.description, 1, 160)) AS summary,
+                          (SELECT m.url FROM media m WHERE m.product_id = p.id AND m.type = 'image' ORDER BY m.sort_order LIMIT 1) AS main_image,
+                          MIN(v.price) AS price,
+                          'EUR' AS currency,
+                          GROUP_CONCAT(DISTINCT ti.name ORDER BY ti.name SEPARATOR ', ') AS tags
+                     FROM products p
+                     INNER JOIN products_i18n pi ON pi.product_id = p.id AND pi.lang = :lang
+                     LEFT JOIN categories c ON c.id = p.category_id
+                     LEFT JOIN categories_i18n ci ON ci.category_id = c.id AND ci.lang = :lang
+                     LEFT JOIN product_variants v ON v.product_id = p.id AND v.is_active = 1
+                     LEFT JOIN product_tags pt ON pt.product_id = p.id
+                     LEFT JOIN tags_i18n ti ON ti.tag_id = pt.tag_id AND ti.lang = :lang";
+  $productWhere = ['p.is_active = 1'];
+  $productParams = ['lang' => $lang];
 
   if ($query !== '') {
-    $productWhere[] = "(name LIKE :q OR summary LIKE :q OR tags LIKE :q)";
+    $productWhere[] = "(pi.title LIKE :q OR pi.description LIKE :q OR pi.meta_description LIKE :q OR ti.name LIKE :q)";
     $productParams['q'] = $like;
   }
 
   if ($category !== '') {
-    $productWhere[] = "(tag = :category OR category = :category)";
+    $productWhere[] = "(ci.name = :category OR c.code = :category)";
     $productParams['category'] = $category;
   }
 
@@ -45,7 +57,8 @@ if (!$isGuideCategory) {
     $productQuery .= ' WHERE ' . implode(' AND ', $productWhere);
   }
 
-  $productQuery .= ' ORDER BY name';
+  $productQuery .= ' GROUP BY p.id, pi.title, pi.slug, ci.name, pi.meta_description, pi.description, c.code';
+  $productQuery .= ' ORDER BY pi.title';
   $prodStmt = $pdo->prepare($productQuery);
   $prodStmt->execute($productParams);
   $products = $prodStmt->fetchAll();
@@ -78,7 +91,7 @@ $results = [];
 foreach ($products as $product) {
   $results[] = [
     'title' => $product['name'],
-    'category' => $product['tag'] ?: $product['category'],
+    'category' => $product['category'],
     'summary' => $product['summary'],
     'price' => $product['price'],
     'currency' => $product['currency'],
