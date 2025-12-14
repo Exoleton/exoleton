@@ -544,6 +544,6 @@ $canonical = 'https://exoleton.com' . $base . '/';
   <!-- Scripts (ABSOLU) -->
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
   <script src="/assets/js/main.js"></script>
-  <script src="/assets/js/i18n.js?v=3"></script>
+  <script src="/assets/js/i18n.js?v=4"></script>
 </body>
 </html>
