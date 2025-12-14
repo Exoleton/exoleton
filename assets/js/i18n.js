@@ -26,7 +26,7 @@
     const seg = pathname.split('/').filter(Boolean);
     const first = seg.length ? normalizeLang(seg[0]) : null;
     if (first) seg.shift();
-    return '/' + seg.join('/'); // "/" si vide
+    return '/' + seg.join('/');
   }
 
   function buildLangUrl(lang) {
@@ -53,7 +53,6 @@
   }
 
   function applyTranslations(dict, currentLang) {
-    // text nodes
     document.querySelectorAll('[data-i18n]').forEach(el => {
       const key = el.dataset.i18n;
       const value = resolveKey(dict, key);
@@ -63,29 +62,28 @@
       }
     });
 
-    // attributes: placeholder, aria-label, title, value
     const attrMap = [
       { data: 'i18nPlaceholder', attr: 'placeholder' },
       { data: 'i18nAriaLabel',  attr: 'aria-label' },
       { data: 'i18nTitle',      attr: 'title' },
       { data: 'i18nValue',      attr: 'value' }
     ];
+
     attrMap.forEach(({data, attr}) => {
-      document.querySelectorAll(`[data-${data.replace(/[A-Z]/g, m => '-' + m.toLowerCase())}]`).forEach(el => {
+      const selector = `[data-${data.replace(/[A-Z]/g, m => '-' + m.toLowerCase())}]`;
+      document.querySelectorAll(selector).forEach(el => {
         const key = el.dataset[data];
         const value = resolveKey(dict, key);
         if (value !== undefined) el.setAttribute(attr, value);
       });
     });
 
-    // meta description
     document.querySelectorAll('[data-i18n-description]').forEach(meta => {
       const key = meta.dataset.i18nDescription;
       const value = resolveKey(dict, key);
       if (value !== undefined) meta.setAttribute('content', value);
     });
 
-    // open graph (data-i18n-property="og:title:meta.xxx")
     document.querySelectorAll('[data-i18n-property]').forEach(meta => {
       const raw = meta.dataset.i18nProperty || '';
       const parts = raw.split(':');
@@ -101,10 +99,9 @@
     lang = normalizeLang(lang) || 'fr';
     if (cache[lang]) return cache[lang];
 
-    // Essais avec alias (pour compatibilité)
     const candidates = [];
-    if (lang === 'ko') candidates.push('ko', 'kr');
-    else if (lang === 'ja') candidates.push('ja', 'jp');
+    if (lang === 'ko') candidates.push('ko','kr');
+    else if (lang === 'ja') candidates.push('ja','jp');
     else candidates.push(lang);
 
     let lastErr = null;
@@ -113,28 +110,21 @@
       const url = `/assets/lang/${code}.json?v=4`;
       try {
         const r = await fetch(url, { cache: 'no-store' });
-        if (!r.ok) {
-          lastErr = new Error(`HTTP ${r.status} on ${url}`);
-          continue;
-        }
+        if (!r.ok) { lastErr = new Error(`HTTP ${r.status} on ${url}`); continue; }
         const data = await r.json();
-        // IMPORTANT: on cache sous la langue "canonique" demandée
         cache[lang] = data;
         return data;
       } catch (e) {
         lastErr = e;
       }
     }
-
     throw lastErr || new Error('Cannot load lang');
   }
 
-
   function ensureOptions(select, currentLang) {
-    if (select.options && select.options.length === SUPPORTED_LANGS.length) {
-      select.value = currentLang;
-      return;
-    }
+    const hasFr = Array.from(select.options || []).some(o => o.value === 'fr');
+    if (hasFr) { select.value = currentLang; return; }
+
     select.innerHTML = '';
     SUPPORTED_LANGS.forEach(code => {
       const opt = document.createElement('option');
@@ -160,7 +150,6 @@
     select.addEventListener('change', (e) => {
       const next = normalizeLang(e.target.value) || 'fr';
       try { localStorage.setItem(LANG_KEY, next); } catch (err) {}
-      // Navigation (reload) => annonces SQL dans la bonne langue
       window.location.assign(buildLangUrl(next));
     }, true);
   }
@@ -171,7 +160,6 @@
 
     bindSwitcher(lang);
 
-    // Appliquer le JSON à chaque chargement de page
     try {
       const base = await fetchTranslation('fr');
       let dict = base;
@@ -187,10 +175,6 @@
     } catch (e) {
       console.error('i18n init failed', e);
     }
-
-    // si le select est recréé plus tard (rare), on rebind
-    const obs = new MutationObserver(() => bindSwitcher(lang));
-    obs.observe(document.documentElement, { childList: true, subtree: true });
   }
 
   document.addEventListener('DOMContentLoaded', init);
