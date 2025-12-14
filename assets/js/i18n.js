@@ -1,176 +1,197 @@
-(function(){
+(function () {
   const LANG_KEY = 'exoleton-lang';
-  const SUPPORTED_LANGS = ['fr','en','de','it','es','pt','nl','pl','jp','zh','kr','ru'];
+  const SUPPORTED_LANGS = ['fr','en','de','it','es','pt','nl','pl','ja','zh','ko','ru'];
+
   const LANGUAGE_NAMES = {
-    fr: '🇫🇷 FR',
-    en: '🇬🇧 EN',
-    de: '🇩🇪 DE',
-    it: '🇮🇹 IT',
-    es: '🇪🇸 ES',
-    pt: '🇵🇹 PT',
-    nl: '🇳🇱 NL',
-    pl: '🇵🇱 PL',
-    jp: '🇯🇵 JP',
-    zh: '🇨🇳 ZH',
-    kr: '🇰🇷 KR',
-    ru: '🇷🇺 RU'
+    fr:'🇫🇷 FR', en:'🇬🇧 EN', de:'🇩🇪 DE', it:'🇮🇹 IT', es:'🇪🇸 ES', pt:'🇵🇹 PT',
+    nl:'🇳🇱 NL', pl:'🇵🇱 PL', ja:'🇯🇵 JA', zh:'🇨🇳 ZH', ko:'🇰🇷 KO', ru:'🇷🇺 RU'
   };
 
   const cache = {};
 
-  function getLanguageFromPath(){
-    const segments = window.location.pathname.split('/').filter(Boolean);
-    if (segments.length && SUPPORTED_LANGS.includes(segments[0])) {
-      return segments[0];
-    }
-    return null;
+  function normalizeLang(l) {
+    if (!l) return null;
+    l = String(l).toLowerCase().trim();
+    if (l === 'jp') l = 'ja';
+    if (l === 'kr') l = 'ko';
+    return SUPPORTED_LANGS.includes(l) ? l : null;
   }
 
-  function updateUrlLanguage(lang){
-    if (!window.history || typeof window.history.replaceState !== 'function') return;
-    const segments = window.location.pathname.split('/').filter(Boolean);
-    if (segments.length && SUPPORTED_LANGS.includes(segments[0])) {
-      segments.shift();
-    }
-    if (segments[0] !== lang) {
-      segments.unshift(lang);
-    }
-    const newPath = '/' + segments.join('/') + (window.location.pathname.endsWith('/') ? '/' : '');
-    const newUrl = newPath + window.location.search + window.location.hash;
-    if (newUrl !== window.location.pathname + window.location.search + window.location.hash) {
-      window.history.replaceState({}, '', newUrl);
-    }
+  function getPathLang() {
+    const seg = window.location.pathname.split('/').filter(Boolean);
+    return seg.length ? normalizeLang(seg[0]) : null;
   }
 
-  function resolveKey(obj, path){
+  function stripLeadingLang(pathname) {
+    const seg = pathname.split('/').filter(Boolean);
+    const first = seg.length ? normalizeLang(seg[0]) : null;
+    if (first) seg.shift();
+    return '/' + seg.join('/'); // "/" si vide
+  }
+
+  function buildLangUrl(lang) {
+    lang = normalizeLang(lang) || 'fr';
+    const rest = stripLeadingLang(window.location.pathname);
+    const restPath = (rest === '/') ? '' : rest;
+    const keepTrailing = window.location.pathname.endsWith('/') ? '/' : '';
+    return '/' + lang + restPath + keepTrailing + window.location.search + window.location.hash;
+  }
+
+  function resolveKey(obj, path) {
     return path.split('.').reduce((acc, part) => (acc && typeof acc === 'object') ? acc[part] : undefined, obj);
   }
 
-  function mergeTranslations(base, override){
-    if (!override || typeof override !== 'object') return {...base};
-    const output = {...base};
-    Object.keys(override).forEach(key => {
-      if (override[key] && typeof override[key] === 'object' && !Array.isArray(override[key])) {
-        output[key] = mergeTranslations(base[key] || {}, override[key]);
-      } else {
-        output[key] = override[key];
-      }
+  function mergeTranslations(base, override) {
+    if (!override || typeof override !== 'object') return { ...base };
+    const out = { ...base };
+    Object.keys(override).forEach(k => {
+      const v = override[k];
+      if (v && typeof v === 'object' && !Array.isArray(v)) out[k] = mergeTranslations(base[k] || {}, v);
+      else out[k] = v;
     });
-    return output;
+    return out;
   }
 
-  function applyTranslations(dict){
+  function applyTranslations(dict, currentLang) {
+    // text nodes
     document.querySelectorAll('[data-i18n]').forEach(el => {
       const key = el.dataset.i18n;
       const value = resolveKey(dict, key);
       if (value !== undefined) {
-        if (el.dataset.i18nHtml === 'true') {
-          el.innerHTML = value;
-        } else {
-          el.textContent = value;
-        }
+        if (el.dataset.i18nHtml === 'true') el.innerHTML = value;
+        else el.textContent = value;
       }
     });
 
-    const attrMap = ['placeholder','ariaLabel','title','value'];
-    attrMap.forEach(attr => {
-      const selector = `[data-i18n-${attr.replace(/[A-Z]/g, m => '-' + m.toLowerCase())}]`;
-      document.querySelectorAll(selector).forEach(el => {
-        const key = el.dataset[`i18n${attr.charAt(0).toUpperCase() + attr.slice(1)}`];
+    // attributes: placeholder, aria-label, title, value
+    const attrMap = [
+      { data: 'i18nPlaceholder', attr: 'placeholder' },
+      { data: 'i18nAriaLabel',  attr: 'aria-label' },
+      { data: 'i18nTitle',      attr: 'title' },
+      { data: 'i18nValue',      attr: 'value' }
+    ];
+    attrMap.forEach(({data, attr}) => {
+      document.querySelectorAll(`[data-${data.replace(/[A-Z]/g, m => '-' + m.toLowerCase())}]`).forEach(el => {
+        const key = el.dataset[data];
         const value = resolveKey(dict, key);
-        if (value !== undefined) {
-          const attrName = attr === 'ariaLabel' ? 'aria-label' : attr;
-          el.setAttribute(attrName, value);
-        }
+        if (value !== undefined) el.setAttribute(attr, value);
       });
     });
 
+    // meta description
     document.querySelectorAll('[data-i18n-description]').forEach(meta => {
       const key = meta.dataset.i18nDescription;
       const value = resolveKey(dict, key);
-      if (value !== undefined) {
-        meta.setAttribute('content', value);
-      }
+      if (value !== undefined) meta.setAttribute('content', value);
     });
 
+    // open graph (data-i18n-property="og:title:meta.xxx")
     document.querySelectorAll('[data-i18n-property]').forEach(meta => {
-      const raw = meta.dataset.i18nProperty;
+      const raw = meta.dataset.i18nProperty || '';
       const parts = raw.split(':');
       const key = parts.length > 1 ? parts.slice(1).join(':') : parts[0];
       const value = resolveKey(dict, key);
-      if (value !== undefined) {
-        meta.setAttribute('content', value);
-      }
+      if (value !== undefined) meta.setAttribute('content', value);
     });
 
-    if (dict && dict.lang && dict.lang.label) {
-      document.documentElement.lang = currentLang;
-    }
+    document.documentElement.lang = currentLang;
   }
 
-  function populateSelectors(current){
-    document.querySelectorAll('[data-language-switcher]').forEach(select => {
-      select.innerHTML = '';
-      SUPPORTED_LANGS.forEach(code => {
-        const option = document.createElement('option');
-        option.value = code;
-        option.textContent = LANGUAGE_NAMES[code] || code.toUpperCase();
-        if (code === current) option.selected = true;
-        select.appendChild(option);
-      });
-      select.addEventListener('change', (e) => {
-        setLanguage(e.target.value);
-      });
-    });
-  }
-
-  async function fetchTranslation(lang){
+  async function fetchTranslation(lang) {
+    lang = normalizeLang(lang) || 'fr';
     if (cache[lang]) return cache[lang];
-    const response = await fetch(`/assets/lang/${lang}.json`);
-    if (!response.ok) throw new Error('Cannot load lang');
-    const data = await response.json();
-    cache[lang] = data;
-    return data;
+
+    // Essais avec alias (pour compatibilité)
+    const candidates = [];
+    if (lang === 'ko') candidates.push('ko', 'kr');
+    else if (lang === 'ja') candidates.push('ja', 'jp');
+    else candidates.push(lang);
+
+    let lastErr = null;
+
+    for (const code of candidates) {
+      const url = `/assets/lang/${code}.json?v=4`;
+      try {
+        const r = await fetch(url, { cache: 'no-store' });
+        if (!r.ok) {
+          lastErr = new Error(`HTTP ${r.status} on ${url}`);
+          continue;
+        }
+        const data = await r.json();
+        // IMPORTANT: on cache sous la langue "canonique" demandée
+        cache[lang] = data;
+        return data;
+      } catch (e) {
+        lastErr = e;
+      }
+    }
+
+    throw lastErr || new Error('Cannot load lang');
   }
 
-  function detectLanguage(){
-    const pathLang = getLanguageFromPath();
-    if (pathLang) return pathLang;
-    const stored = localStorage.getItem(LANG_KEY);
-    if (stored && SUPPORTED_LANGS.includes(stored)) return stored;
-    const browser = (navigator.language || navigator.userLanguage || 'fr').slice(0,2).toLowerCase();
-    return SUPPORTED_LANGS.includes(browser) ? browser : 'fr';
+
+  function ensureOptions(select, currentLang) {
+    if (select.options && select.options.length === SUPPORTED_LANGS.length) {
+      select.value = currentLang;
+      return;
+    }
+    select.innerHTML = '';
+    SUPPORTED_LANGS.forEach(code => {
+      const opt = document.createElement('option');
+      opt.value = code;
+      opt.textContent = LANGUAGE_NAMES[code] || code.toUpperCase();
+      select.appendChild(opt);
+    });
+    select.value = currentLang;
   }
 
-  let currentLang = 'fr';
+  function bindSwitcher(currentLang) {
+    const select =
+      document.querySelector('[data-language-switcher]') ||
+      document.getElementById('languageSwitcher');
 
-  async function setLanguage(lang){
-    if (!SUPPORTED_LANGS.includes(lang)) lang = 'fr';
-    currentLang = lang;
-    localStorage.setItem(LANG_KEY, lang);
-    updateUrlLanguage(lang);
-    populateSelectors(lang);
+    if (!select) return;
+
+    ensureOptions(select, currentLang);
+
+    if (select.dataset.langBound === '1') return;
+    select.dataset.langBound = '1';
+
+    select.addEventListener('change', (e) => {
+      const next = normalizeLang(e.target.value) || 'fr';
+      try { localStorage.setItem(LANG_KEY, next); } catch (err) {}
+      // Navigation (reload) => annonces SQL dans la bonne langue
+      window.location.assign(buildLangUrl(next));
+    }, true);
+  }
+
+  async function init() {
+    const lang = getPathLang() || normalizeLang(localStorage.getItem(LANG_KEY)) || 'fr';
+    try { localStorage.setItem(LANG_KEY, lang); } catch (err) {}
+
+    bindSwitcher(lang);
+
+    // Appliquer le JSON à chaque chargement de page
     try {
       const base = await fetchTranslation('fr');
-      let translations = base;
+      let dict = base;
       if (lang !== 'fr') {
         try {
           const override = await fetchTranslation(lang);
-          translations = mergeTranslations(base, override);
-        } catch (err) {
-          translations = base;
-          console.warn('Using fallback translations', err);
+          dict = mergeTranslations(base, override);
+        } catch (e) {
+          dict = base;
         }
       }
-      applyTranslations(translations);
-    } catch (err) {
-      console.error('Unable to apply translations', err);
+      applyTranslations(dict, lang);
+    } catch (e) {
+      console.error('i18n init failed', e);
     }
+
+    // si le select est recréé plus tard (rare), on rebind
+    const obs = new MutationObserver(() => bindSwitcher(lang));
+    obs.observe(document.documentElement, { childList: true, subtree: true });
   }
 
-  document.addEventListener('DOMContentLoaded', () => {
-    const lang = detectLanguage();
-    populateSelectors(lang);
-    setLanguage(lang);
-  });
+  document.addEventListener('DOMContentLoaded', init);
 })();
