@@ -1,9 +1,20 @@
 RewriteEngine On
+RewriteBase /
 
-# Allow direct access to existing files and directories
+# 0) Laisser passer les fichiers/dossiers existants
 RewriteCond %{REQUEST_FILENAME} -f [OR]
 RewriteCond %{REQUEST_FILENAME} -d
 RewriteRule ^ - [L]
 
-# Redirect requests prefixed with a supported language to the base path
-RewriteRule ^(fr|en|de|it|es|pt|nl|pl|jp|zh|kr|ru)/(.*)$ /$2 [L,NC,QSA]
+# 1) Si quelqu'un arrive sur la racine sans langue -> /fr/
+RewriteRule ^$ fr/ [R=301,L]
+
+# 2) Forcer le slash final sur les langues
+RewriteRule ^(fr|en|de|it|es|pt|nl|pl|ja|zh|ko|ru)$ $1/ [R=301,L,QSA]
+
+# 3) ROUTAGE ADMIN - Important : avant la règle générale
+# Redirige /{lang}/admin/xxx vers /admin/index.php en préservant la langue
+RewriteRule ^(fr|en|de|it|es|pt|nl|pl|ja|zh|ko|ru)/admin(?:/(.*))?$ admin/index.php?lang=$1&admin_path=$2 [L,QSA]
+
+# 4) Router toutes les autres URLs /{lang}/... vers router.php
+RewriteRule ^(fr|en|de|it|es|pt|nl|pl|ja|zh|ko|ru)(?:/(.*))?$ router.php?lang=$1&path=$2 [L,QSA,NC]

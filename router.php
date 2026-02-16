@@ -1,57 +1,34 @@
 <?php
-require __DIR__ . '/auth.php';
+$lang = $_GET['lang'] ?? 'fr';
+$path = $_GET['path'] ?? '';
 
-$uri = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH) ?? '/';
-$uri = trim($uri, '/');
-$parts = $uri === '' ? [] : explode('/', $uri);
+$langs = ['fr','en','de','it','es','pt','nl','pl','ja','zh','ko','ru'];
+if (!in_array($lang, $langs, true)) $lang = 'fr';
 
-// 1) Langue (1er segment)
-$lang = $parts[0] ?? 'fr';
+$path = trim($path, '/');
 
-// 2) Langues actives en DB (cache simple)
-static $activeLangs = null;
-if ($activeLangs === null) {
-  $activeLangs = $pdo->query("SELECT code FROM languages WHERE is_active=1")->fetchAll(PDO::FETCH_COLUMN);
-}
-
-if (!in_array($lang, $activeLangs, true)) {
-  // si pas de langue dans l'URL -> redirige fr
-  // ex: / -> /fr/
-  if ($uri === '' || !preg_match('~^[a-z]{2}(/|$)~', $uri)) {
-    header("Location: /fr/", true, 301);
-    exit;
-  }
-  http_response_code(404);
-  echo "Langue non supportée";
+if ($path === '' || $path === 'index.php') {
+  require __DIR__ . '/index.php';
   exit;
 }
 
-// 3) Chemin après la langue
-$pathAfterLang = array_slice($parts, 1);
-$route = $pathAfterLang[0] ?? ''; // '' = home
-
-// 4) Routage
-switch ($route) {
-  case '':
-    // /fr/ ou /en/
-    require __DIR__ . '/index.php';
-    break;
-
-  case 'produit':
-    // /fr/produit/exolift-pro
-    $slug = $pathAfterLang[1] ?? '';
-    if ($slug === '') { http_response_code(404); echo "Slug manquant"; exit; }
-    $_GET['slug'] = $slug;
-    require __DIR__ . '/detail.php';
-    break;
-
-  case 'recherche':
-    // /fr/recherche?q=...
-    require __DIR__ . '/recherche.php';
-    break;
-
-  default:
-    http_response_code(404);
-    echo "Page introuvable";
-    break;
+if ($path === 'recherche') {
+  require __DIR__ . '/recherche.php';
+  exit;
 }
+
+if (preg_match('#^produit/([^/]+)$#', $path, $m)) {
+  $_GET['slug'] = $m[1];
+  require __DIR__ . '/detail.php';
+  exit;
+}
+
+if ($path === 'login') { require __DIR__ . '/login.php'; exit; }
+if ($path === 'logout') { require __DIR__ . '/logout.php'; exit; }
+if ($path === 'account') { require __DIR__ . '/account.php'; exit; }
+
+// SUPPRIMÉ : la règle 'admin' est gérée par .htaccess directement
+// if ($path === 'admin') { require __DIR__ . '/admin.php'; exit; }
+
+http_response_code(404);
+require __DIR__ . '/404.php';
